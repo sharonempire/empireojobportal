@@ -27,7 +27,9 @@ class CustomText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final resolvedColor =
-        color ?? Theme.of(context).textTheme.bodyMedium?.color ?? ColorConsts.black;
+        color ??
+        Theme.of(context).textTheme.bodyMedium?.color ??
+        ColorConsts.black;
 
     return Text(
       text,
@@ -39,8 +41,9 @@ class CustomText extends StatelessWidget {
         fontWeight: fontWeight,
         color: resolvedColor,
         decoration: decoration,
-        decorationColor:
-            decoration != TextDecoration.none ? resolvedColor : null,
+        decorationColor: decoration != TextDecoration.none
+            ? resolvedColor
+            : null,
       ),
     );
   }

@@ -1,6 +1,8 @@
 
 import 'package:empire_job/features/data/storage/shared_preferences.dart';
 import 'package:empire_job/routes/routes.dart';
+import 'package:empire_job/shared/consts/color_consts.dart';
+import 'package:empire_job/shared/providers/theme_providers.dart';
 import 'package:empire_job/shared/supabase/keys.dart';
 import 'package:fetch_client/fetch_client.dart';
 import 'package:flutter/foundation.dart';
@@ -34,60 +36,62 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+        final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp.router(
       title: 'Empire Job',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        useMaterial3: true,
+      useMaterial3: true,
         brightness: Brightness.light,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: ColorConsts.primaryColor,
           brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: ColorConsts.white,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: ColorConsts.white,
+          foregroundColor: ColorConsts.black,
           elevation: 0,
         ),
-        cardColor: Colors.white,
-        dividerColor: Colors.grey,
+        cardColor: ColorConsts.white,
+        dividerColor: ColorConsts.greyShade300,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: ColorConsts.primaryColor,
           brightness: Brightness.dark,
         ),
-        scaffoldBackgroundColor: const Color(0xFF121212),
+         scaffoldBackgroundColor: ColorConsts.darkBackgroundScaffold,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E1E1E),
-          foregroundColor: Colors.white,
+          backgroundColor: ColorConsts.darkCardColor,
+          foregroundColor: ColorConsts.darkTextColor,
           elevation: 0,
         ),
-        cardColor: const Color(0xFF1E1E1E),
-        dividerColor: Colors.grey,
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(color: Colors.white),
-          bodyLarge: TextStyle(color: Colors.white),
-          bodySmall: TextStyle(color: Colors.white70),
-          displaySmall: TextStyle(color: Colors.white),
-          displayMedium: TextStyle(color: Colors.white),
-          displayLarge: TextStyle(color: Colors.white),
-          headlineSmall: TextStyle(color: Colors.white),
-          headlineMedium: TextStyle(color: Colors.white),
-          headlineLarge: TextStyle(color: Colors.white),
-          titleSmall: TextStyle(color: Colors.white),
-          titleMedium: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white),
-          labelSmall: TextStyle(color: Colors.white),
-          labelMedium: TextStyle(color: Colors.white),
-          labelLarge: TextStyle(color: Colors.white),
+           cardColor: ColorConsts.darkCardColor,
+        dividerColor: ColorConsts.darkDivider,
+        textTheme:  TextTheme(
+        bodyMedium: const TextStyle(color: ColorConsts.black),
+          bodyLarge: const TextStyle(color: ColorConsts.black),
+          bodySmall: const TextStyle(color: ColorConsts.darkTextSecondary),
+          displaySmall: const TextStyle(color: ColorConsts.black),
+          displayMedium: const TextStyle(color: ColorConsts.black),
+          displayLarge: const TextStyle(color: ColorConsts.black),
+          headlineSmall: const TextStyle(color: ColorConsts.black),
+          headlineMedium: const TextStyle(color: ColorConsts.black),
+          headlineLarge: const TextStyle(color: ColorConsts.black),
+          titleSmall: const TextStyle(color: ColorConsts.black),
+          titleMedium: const TextStyle(color: ColorConsts.black),
+          titleLarge: const TextStyle(color: ColorConsts.black),
+          labelSmall: const TextStyle(color: ColorConsts.black),
+          labelMedium: const TextStyle(color: ColorConsts.black),
+          labelLarge: const TextStyle(color: ColorConsts.black),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: ColorConsts.darkTextColor),
       ),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: appRouter,
     );
   }
