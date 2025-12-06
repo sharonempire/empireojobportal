@@ -17,6 +17,8 @@ class CommonTextfieldWidget extends StatelessWidget {
   final double? borderRadius;
   final Color? fillColor;
   final Color? hintColor;
+    final double? hintSize;
+
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
   final bool useFloatingLabel;
@@ -47,6 +49,7 @@ class CommonTextfieldWidget extends StatelessWidget {
     this.borderRadius,
     this.fillColor,
     this.hintColor,
+    this.hintSize,
     this.onChanged,
     this.onFieldSubmitted,
     this.useFloatingLabel = false,
@@ -74,7 +77,8 @@ class CommonTextfieldWidget extends StatelessWidget {
       if (validator != null) {
         return validator;
       } else if (requiredField) {
-        return (value) => (value == null || value.trim().isEmpty) ? 'Required' : null;
+        return (value) =>
+            (value == null || value.trim().isEmpty) ? 'Required' : null;
       }
       return null;
     }
@@ -100,7 +104,7 @@ class CommonTextfieldWidget extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: GoogleFonts.inter(fontSize: 12, color: context.themeDark),
+        style: GoogleFonts.inter(fontSize: 12,color: isDark ? context.themeWhite : context.themeDark),
         onChanged: onChanged,
         onFieldSubmitted: onFieldSubmitted,
         onTap: onTap,
@@ -112,7 +116,9 @@ class CommonTextfieldWidget extends StatelessWidget {
         textInputAction: textInputAction,
         focusNode: focusNode,
         onSaved: onSaved,
+      
         decoration: InputDecoration(
+       
           hintText: hintText,
           labelText: labelText,
           labelStyle: useFloatingLabel
@@ -133,6 +139,7 @@ class CommonTextfieldWidget extends StatelessWidget {
               : null,
           hintStyle: GoogleFonts.inter(
             color: hintColor ?? context.themeIconGrey,
+            fontSize: hintSize??12
           ),
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
@@ -182,7 +189,7 @@ class CommonTextfieldWidget extends StatelessWidget {
           filled: true,
           fillColor: fillColor ?? context.themeWhite,
           contentPadding: useFloatingLabel
-              ? const EdgeInsets.symmetric(horizontal: 0, vertical: 8)
+              ? const EdgeInsets.symmetric(horizontal: 0, vertical: 0)
               : const EdgeInsets.symmetric(horizontal: 8),
         ),
         validator: buildValidator(),

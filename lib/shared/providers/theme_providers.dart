@@ -20,7 +20,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     final themeIndex = prefs.getInt(_themeKey);
 
     if (themeIndex == null) {
-      state = ThemeMode.system;
+      state = ThemeMode.light;
     } else {
       state =
           ThemeMode.values[themeIndex.clamp(0, ThemeMode.values.length - 1)];
