@@ -1,9 +1,11 @@
+import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
 import 'package:flutter/material.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginPageWeb extends StatefulWidget {
   const LoginPageWeb({super.key});
@@ -27,227 +29,182 @@ class _LoginPageWebState extends State<LoginPageWeb> {
   }
 
   void _handleLogin() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Handle login logic
-      _formKey.currentState?.save();
-      print('Login successful');
-    }
+    if (_formKey.currentState?.validate() ?? false) {}
   }
 
-  void _handleForgotPassword() {
-    // Navigate to forgot password page
-    print('Navigate to forgot password');
-  }
+  void _handleForgotPassword() {}
 
-  void _handleRegister() {
-    // Navigate to register page
-    print('Navigate to register');
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isLargeScreen = size.width > 900;
+@override
+Widget build(BuildContext context) {
+  final size = MediaQuery.of(context).size;
+  final isLargeScreen = size.width > 900;
 
-    return Scaffold(
-      backgroundColor: context.themeDark,
-      body: Center(
-        child: SingleChildScrollView(
-          child: isLargeScreen
-              ? _buildLargeScreenLayout()
-              : _buildSmallScreenLayout(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLargeScreenLayout() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Flexible(
-          flex: 1,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 450),
-            child: _buildForm(),
+  return Scaffold(
+    backgroundColor: context.themeScaffold,
+    body: Center(
+      child: SingleChildScrollView(
+        child: Container(
+          constraints: BoxConstraints(
+            minHeight: size.height,
           ),
-        ),
-        const SizedBox(width: 80),
-        Flexible(
-          flex: 1,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: _buildImage(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSmallScreenLayout() {
-    return Column(
-      children: [
-        Container(
-          constraints: const BoxConstraints(maxWidth: 450),
-          child: _buildForm(),
-        ),
-        const SizedBox(height: 40),
-        Container(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: _buildImage(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildForm() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomText(
-            text: 'Welcome Back !',
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-          const SizedBox(height: 12),
-          CustomText(
-            text: 'Access your HR dashboard and continue managing\njobs and applicants.',
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-            maxLines: 2,
-          ),
-          const SizedBox(height: 40),
-                    CustomText(
-            text: 'Email Address',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-
-          ),
-          const SizedBox(height: 8),
-      CommonTextfieldWidget(
-              height: 48,
-              controller: _emailController,
-              fillColor: context.themeDark,
-              hintText: 'Email Address',
-              requiredField: true,
-              keyboardType: TextInputType.emailAddress,
-              useFloatingLabel: true,
-              borderColor: context.themeIconGrey,
-              borderRadius: 8,
-              onChanged: (value) {
-              },
-            ),
-          const SizedBox(height: 24),
-          
-          // Password Field
-          CustomText(
-            text: 'Password',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-          const SizedBox(height: 8),
-          CommonTextfieldWidget(
-                          fillColor: context.themeDark,
-
-            controller: _passwordController,
-            hintText: 'Enter your secure password.',
-            obscureText: _obscurePassword,
-            requiredField: true,
-            useBorderOnly: true,
-            borderRadius: 12,
-            height: 50,
-            useFloatingLabel: true,
-     
-          ),
-          const SizedBox(height: 16),
-          
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: Checkbox(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                      },
-                      activeColor: context.themeDark,
-                      side: BorderSide(color: context.themeIconGrey),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 1, right: 16, top: 16, bottom: 16), // 100px from left
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center, // Vertical center
+              children: [
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 450),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          text: 'Welcome Back !',
+                          fontSize: 50,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        const SizedBox(height: 12),
+                        CustomText(
+                          text:
+                              'Access your HR dashboard and continue managing jobs and applicants.',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 76),
+                        CustomText(
+                          text: 'Email Address',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        const SizedBox(height: 8),
+                        CommonTextfieldWidget(
+                          height: 48,
+                          controller: _emailController,
+                          hintText:
+                              'Enter the email associated with your account.',
+                          requiredField: true,
+                          hintSize: 14,
+                          keyboardType: TextInputType.emailAddress,
+                          useFloatingLabel: true,
+                          borderColor: context.themeIconGrey,
+                          onChanged: (value) {},
+                        ),
+                        const SizedBox(height: 40),
+                        CustomText(
+                          text: 'Password',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        const SizedBox(height: 8),
+                        CommonTextfieldWidget(
+                          controller: _passwordController,
+                          hintText: 'Enter your secure password.',
+                          hintSize: 14,
+                          obscureText: _obscurePassword,
+                          requiredField: true,
+                          useFloatingLabel: true,
+                          borderRadius: 12,
+                          height: 50,
+                          borderColor: context.themeIconGrey,
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Transform.scale(
+                                  scale: 0.8,
+                                  child: Checkbox(
+                                    value: _rememberMe,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _rememberMe = value ?? false;
+                                      });
+                                    },
+                                    activeColor: context.themeDark,
+                                    side: BorderSide(
+                                      color: context.themeIconGrey,
+                                    ),
+                                  ),
+                                ),
+                                CustomText(
+                                  text: 'Remember me',
+                                  fontSize: 10,
+                                  color: context.themeIconGrey,
+                                ),
+                              ],
+                            ),
+                            GestureDetector(
+                              onTap: _handleForgotPassword,
+                              child: CustomText(
+                                text: 'Forgot Password?',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 36),
+                        PrimaryButtonWidget(
+                          text: 'Login',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          showShadow: true,
+                          showBorder: false,
+                          offset: 4,
+                          onPressed: _handleLogin,
+                        ),
+                        const SizedBox(height: 48),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomText(
+                              text: "Don't have an account? ",
+                              fontSize: 12,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                context.go(RouterConsts.signupPagePath);
+                              },
+                              child: CustomText(
+                                text: 'Register',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: ColorConsts.textColorRed,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  CustomText(
-                    text: 'Remember me',
-                    fontSize: 13,
-                    color: context.themeIconGrey,
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: _handleForgotPassword,
-                child: CustomText(
-                  text: 'Forgot Password?',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red,
                 ),
-              ),
-            ],
+                const SizedBox(width: 90), 
+                if (isLargeScreen)
+                  Expanded(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 500),
+                      child: _buildImage(),
+                    ),
+                  )
+              ],
+            ),
           ),
-          const SizedBox(height: 32),
-          
-          // Login Button
-          PrimaryButtonWidget(
-            text: 'Login',
-            onPressed: _handleLogin,
-            backgroundColor: context.themeDark,
-            textColor: context.themeWhite,
-            height: 50,
-            borderRadius: 12,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-          const SizedBox(height: 20),
-          
-          // Register Link
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CustomText(
-                text: "Don't have an account? ",
-                fontSize: 14,
-                color: context.themeIconGrey,
-              ),
-              GestureDetector(
-                onTap: _handleRegister,
-                child: CustomText(
-                  text: 'Register',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red,
-                  decoration: TextDecoration.none,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildImage() {
-    return Image.asset(
-      ImageConsts.imgLogin, 
-      fit: BoxFit.contain,
-    );
+    return Image.asset(ImageConsts.imgLogin, fit: BoxFit.contain);
   }
 }
