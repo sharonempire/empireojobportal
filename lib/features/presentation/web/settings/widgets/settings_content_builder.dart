@@ -1,6 +1,7 @@
 
 import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
 import 'package:empire_job/features/presentation/web/settings/widgets/company_section_widget.dart';
+import 'package:empire_job/features/presentation/web/settings/widgets/logout_section_widget.dart';
 import 'package:empire_job/features/presentation/web/settings/widgets/security_section_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -24,9 +25,7 @@ class SettingsContentBuilder extends StatelessWidget {
       case 1:
         return  SecuritySectionWidget();
       case 2:
-        return SecuritySectionWidget(
-
-        );
+        return const LogoutSectionWidget();
  
       default:
         return const SizedBox();
