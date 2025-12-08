@@ -1,9 +1,11 @@
+import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
 import 'package:flutter/material.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:go_router/go_router.dart';
 
 class SignupPageWeb extends StatefulWidget {
   const SignupPageWeb({super.key});
@@ -19,41 +21,48 @@ class _SignupPageWebState extends State<SignupPageWeb> {
   final _companyController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _rememberMe = false;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _companyController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() {
+  void _handleRegister() {
     if (_formKey.currentState?.validate() ?? false) {}
   }
 
-  void _handleForgotPassword() {}
-
-  void _handleRegister() {}
+  void _handleLogin() {
+    context.go(RouterConsts.loginPath);
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isLargeScreen = size.width > 900;
+    final isLargeScreen = size.width > 1100;
 
     return Scaffold(
       backgroundColor: context.themeScaffold,
       body: Center(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  flex: 1,
-                  child: Container(
+          child: Container(
+            constraints: BoxConstraints(
+              minHeight: size.height,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 112,
+                vertical: 16,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
                     constraints: const BoxConstraints(maxWidth: 450),
                     child: Form(
                       key: _formKey,
@@ -61,16 +70,13 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Center(
-                            child: CustomText(
-                              text: 'Create Your Account',
-                              fontSize: 40,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          CustomText(
+                            text: 'Create Your Account',
+                            fontSize: 40,
+                            fontWeight: FontWeight.w600,
                           ),
                           const SizedBox(height: 12),
                           CustomText(
-                            
                             text:
                                 'Build your company profile and start posting jobs and managing applicants instantly.',
                             fontSize: 20,
@@ -86,12 +92,11 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                           const SizedBox(height: 8),
                           CommonTextfieldWidget(
                             height: 48,
-                            controller: _emailController,
-                            hintText: 'Enter your company’s official name.',
+                            controller: _companyController,
+                            hintText: 'Enter your companys official name.',
                             requiredField: true,
                             hintSize: 14,
-
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.text,
                             useFloatingLabel: true,
                             borderColor: context.themeIconGrey,
                             onChanged: (value) {},
@@ -110,7 +115,6 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                                 'Enter the email associated with your account.',
                             requiredField: true,
                             hintSize: 14,
-
                             keyboardType: TextInputType.emailAddress,
                             useFloatingLabel: true,
                             borderColor: context.themeIconGrey,
@@ -135,7 +139,6 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                             borderColor: context.themeIconGrey,
                           ),
                           const SizedBox(height: 40),
-
                           CustomText(
                             text: 'Confirm Password',
                             fontSize: 14,
@@ -143,31 +146,28 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                           ),
                           const SizedBox(height: 8),
                           CommonTextfieldWidget(
-                            height: 48,
+                            height: 50,
                             controller: _confirmPasswordController,
                             hintText: 'Re-enter the password for verification.',
                             requiredField: true,
                             hintSize: 14,
-
-                            keyboardType: TextInputType.emailAddress,
+                            obscureText: _obscureConfirmPassword,
                             useFloatingLabel: true,
+                            borderRadius: 12,
                             borderColor: context.themeIconGrey,
                             onChanged: (value) {},
                           ),
-
                           const SizedBox(height: 36),
                           PrimaryButtonWidget(
                             text: 'Create Account',
                             fontSize: 16,
-
                             fontWeight: FontWeight.w600,
                             showShadow: true,
                             showBorder: false,
                             offset: 4,
-                            onPressed: _handleLogin,
+                            onPressed: _handleRegister,
                           ),
                           const SizedBox(height: 48),
-
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -176,7 +176,7 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                                 fontSize: 12,
                               ),
                               GestureDetector(
-                                onTap: _handleRegister,
+                                onTap: _handleLogin,
                                 child: CustomText(
                                   text: 'Login',
                                   fontSize: 14,
@@ -191,17 +191,17 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 140),
-                if (isLargeScreen)
-                  Flexible(
-                    flex: 1,
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 500),
-                      child: _buildImage(),
+                  if (isLargeScreen) ...[
+                    const SizedBox(width: 90),
+                    Flexible(
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 500),
+                        child: _buildImage(),
+                      ),
                     ),
-                  ),
-              ],
+                  ],
+                ],
+              ),
             ),
           ),
         ),
