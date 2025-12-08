@@ -2,6 +2,7 @@ import 'package:empire_job/features/presentation/web/authentication/login_page_w
 import 'package:empire_job/features/presentation/web/authentication/signup_page_web.dart';
 import 'package:empire_job/features/presentation/web/dashboard/dashboard_page_web.dart';
 import 'package:empire_job/features/presentation/web/job/create_job_page_web.dart';
+import 'package:empire_job/features/presentation/web/job/manage_jobs_page_web.dart';
 import 'package:empire_job/features/presentation/web/settings/settings_page_web.dart';
 import 'package:empire_job/routes/route_model.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class RouterConsts {
   static const String settingsPath = '/settings';
   static const String dashboardPath = '/dashBoard';
   static const String createJobPath = '/createJob';
+  static const String manageJobsPath = '/manageJobs';
 
   static const String splashScreenPath = '/splash';
 
@@ -30,6 +32,7 @@ class RouterConsts {
   static const String settingsName = 'settings';
   static const String dashboardName = 'dashBoard';
   static const String createJobName = 'createJob';
+  static const String manageJobsName = 'manageJobs';
 
   static const String splashName = 'splash';
 
@@ -63,6 +66,12 @@ class RouterConsts {
       name: createJobName,
       appBuilder: (context, state) => const CreateJobPageWeb(),
       webBuilder: (context, state) => const CreateJobPageWeb(),
+    ),
+    RouteModel(
+      path: manageJobsPath,
+      name: manageJobsName,
+      appBuilder: (context, state) => const ManageJobsPageWeb(),
+      webBuilder: (context, state) => const ManageJobsPageWeb(),
     ),
   ]);
 

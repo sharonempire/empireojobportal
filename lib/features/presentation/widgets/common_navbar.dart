@@ -48,9 +48,26 @@ class CommonNavbar extends ConsumerWidget {
                     context.go(RouterConsts.dashboardPath);
                   }
                 },
+                isActive: GoRouterState.of(
+                  context,
+                ).uri.toString().contains(RouterConsts.dashboardPath),
               ),
               const SizedBox(width: 20),
-              _NavIconButton(label: 'Jobs', onPressed: () {}, showBadge: true),
+              _NavIconButton(
+                label: 'Jobs',
+                onPressed: () {
+                  final currentLocation = GoRouterState.of(
+                    context,
+                  ).uri.toString();
+                  if (!currentLocation.contains(RouterConsts.manageJobsPath)) {
+                    context.go(RouterConsts.manageJobsPath);
+                  }
+                },
+                showBadge: true,
+                isActive: GoRouterState.of(
+                  context,
+                ).uri.toString().contains(RouterConsts.manageJobsPath),
+              ),
               const SizedBox(width: 20),
               _NavIconButton(
                 label: 'Settings',
