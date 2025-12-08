@@ -33,7 +33,7 @@ class _SignupPageWebState extends State<SignupPageWeb> {
   }
 
   void _handleRegister() {
-    if (_formKey.currentState?.validate() ?? false) {}
+    context.go(RouterConsts.dashboardPath);
   }
 
   void _handleLogin() {
