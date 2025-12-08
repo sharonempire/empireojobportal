@@ -18,7 +18,7 @@ class JobPostingStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(35),
       decoration: BoxDecoration(
         color:context.themeWhite,
         borderRadius: BorderRadius.circular(12),
@@ -38,7 +38,7 @@ class JobPostingStatus extends StatelessWidget {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           ...jobs.map((job) => JobStatusCard(
             title: job['title'],
             date: job['date'],

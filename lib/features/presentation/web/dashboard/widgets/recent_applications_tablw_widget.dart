@@ -100,7 +100,7 @@ class RecentApplicationsTable extends StatelessWidget {
                   ],
                 ),
 
-                Divider(color: context.themeDivider, thickness: 1, height: 1),
+                Divider(color: context.themeDivider.withOpacity(.5),),
                 ...applications.asMap().entries.map((entry) {
                   final app = entry.value;
                   return Column(
@@ -123,10 +123,10 @@ class RecentApplicationsTable extends StatelessWidget {
                           ),
                         ],
                       ),
+
                       Divider(
-                        color: context.themeIconGrey.withOpacity(0.3),
-                        thickness: 1,
-                        height: 1,
+                        color: context.themeDivider.withOpacity(0.5),
+                 
                       ),
                     ],
                   );
