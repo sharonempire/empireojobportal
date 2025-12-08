@@ -6,6 +6,7 @@ import 'package:empire_job/features/presentation/widgets/responsive_horizontal_s
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class DashboardPageWeb extends StatelessWidget {
   const DashboardPageWeb({super.key});
@@ -52,7 +53,9 @@ class DashboardPageWeb extends StatelessWidget {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(
-                              onPressed: () {},
+                              onPressed: () {
+                                context.go('/createJob');
+                              },
                               icon:  Icon(Icons.add, size: 18,color: context.themeBlueText,),
                               label: CustomText(
                                 text: 'Post a New Job',
