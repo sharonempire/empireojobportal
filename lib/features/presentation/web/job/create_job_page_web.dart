@@ -20,7 +20,6 @@ class CreateJobPageWeb extends ConsumerStatefulWidget {
 }
 
 class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
-
   @override
   Widget build(BuildContext context) {
     final jobNotifier = ref.read(jobProvider.notifier);
@@ -30,9 +29,8 @@ class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
       body: ResponsiveHorizontalScroll(
-
-breakpoint: 1100,
-minWidth: 1100,
+        breakpoint: 1100,
+        minWidth: 1100,
         child: Column(
           children: [
             const CommonNavbar(),
@@ -102,20 +100,11 @@ minWidth: 1100,
   ) {
     switch (currentStep) {
       case 1:
-        return JobInformationStep(
-          jobModel: jobModel,
-          notifier: jobNotifier,
-        );
+        return JobInformationStep(jobModel: jobModel, notifier: jobNotifier);
       case 2:
-        return LocationSalaryStep(
-          jobModel: jobModel,
-          notifier: jobNotifier,
-        );
+        return LocationSalaryStep(jobModel: jobModel, notifier: jobNotifier);
       case 3:
-        return JobDescriptionStep(
-          jobModel: jobModel,
-          notifier: jobNotifier,
-        );
+        return JobDescriptionStep(jobModel: jobModel, notifier: jobNotifier);
       case 4:
         return RequiredQualificationStep(
           jobModel: jobModel,
@@ -125,5 +114,4 @@ minWidth: 1100,
         return const SizedBox();
     }
   }
-
 }
