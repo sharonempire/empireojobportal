@@ -70,10 +70,11 @@ class LocationSalaryStep extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    text: 'State / Province | Region',
+                    text: 'State/Province/Region',
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: context.themeDark,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
                   SingleSelectDropdownWidget(

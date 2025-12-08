@@ -109,6 +109,7 @@ class _JobDescriptionStepState extends ConsumerState<JobDescriptionStep> {
                   CustomText(
                     text: 'Key Responsibilities',
                     fontSize: 14,
+                    overflow: TextOverflow.ellipsis,
                     fontWeight: FontWeight.w500,
                     color: context.themeDark,
                   ),

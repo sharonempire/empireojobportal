@@ -30,6 +30,9 @@ class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
       body: ResponsiveHorizontalScroll(
+
+breakpoint: 1100,
+minWidth: 1100,
         child: Column(
           children: [
             const CommonNavbar(),
