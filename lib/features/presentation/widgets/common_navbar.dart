@@ -1,4 +1,5 @@
 import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
+import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
@@ -246,14 +247,14 @@ class _NotificationIconButton extends StatelessWidget {
     final isActive = GoRouterState.of(context).uri.toString().contains(
           RouterConsts.notificationsPath,
         );
-    final hasUnreadNotifications = true; // TODO: Replace with actual notification state
+    final hasUnreadNotifications = true; 
 
     return InkWell(
       onTap: () {
         if (kIsWeb) {
           final currentLocation = GoRouterState.of(context).uri.toString();
           if (!currentLocation.contains(RouterConsts.notificationsPath)) {
-            context.go(RouterConsts.notificationsPath);
+            context.push(RouterConsts.notificationsPath);
           }
         }
       },
@@ -294,12 +295,33 @@ class _ProfileSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settingsState = ref.watch(settingsProvider);
+    final companyName = settingsState.companyName ?? '';
+
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        if (kIsWeb) {
+          final currentLocation = GoRouterState.of(context).uri.toString();
+          if (!currentLocation.contains(RouterConsts.settingsPath)) {
+            context.go(RouterConsts.settingsPath);
+          }
+        }
+      },
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(children: [const CircleAvatar(radius: 16)]),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Row(
+          children: [
+            const CircleAvatar(radius: 16),
+            const SizedBox(width: 8),
+            CustomText(
+              text: companyName,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              maxLines: 1,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -17,10 +17,25 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     state = state.copyWith(isLoading: loading);
   }
 
-  Future<void> changePassword() async {
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
     state = state.copyWith(isLoading: true);
-    await Future.delayed(const Duration(seconds: 1));
-    state = state.copyWith(isLoading: false);
+
+    try {
+      final settingsRepository = ref.read(settingsRepositoryProvider);
+
+      await settingsRepository.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
   }
 
   Future<void> loadCompanyData() async {

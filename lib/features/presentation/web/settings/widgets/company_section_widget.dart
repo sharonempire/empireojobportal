@@ -22,6 +22,7 @@ class _CompanySectionWidgetState extends ConsumerState<CompanySectionWidget> {
   @override
   void initState() {
     super.initState();
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(settingsProvider.notifier).loadCompanyData();
     });
@@ -57,21 +58,19 @@ class _CompanySectionWidgetState extends ConsumerState<CompanySectionWidget> {
 
   Future<void> _handleSaveBasicInfo() async {
     try {
-      await ref.read(settingsProvider.notifier).saveCompanyInfo(
+      await ref
+          .read(settingsProvider.notifier)
+          .saveCompanyInfo(
             website: _companyWebsiteController.text,
             address: _companyAddressController.text,
           );
 
       if (mounted) {
-        context.showSuccessSnackbar(
-          'Company information saved successfully',
-        );
+        context.showSuccessSnackbar('Company information saved successfully');
       }
     } catch (e) {
       if (mounted) {
-        context.showErrorSnackbar(
-          'Error saving information: ${e.toString()}',
-        );
+        context.showErrorSnackbar('Error saving information: ${e.toString()}');
       }
     }
   }
@@ -79,9 +78,13 @@ class _CompanySectionWidgetState extends ConsumerState<CompanySectionWidget> {
   @override
   Widget build(BuildContext context) {
     final settingsState = ref.watch(settingsProvider);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateControllersFromState(settingsState);
-    });
+    if (settingsState.companyName != null || settingsState.companyEmail != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _updateControllersFromState(settingsState);
+        }
+      });
+    }
 
     return Column(
       children: [
@@ -123,5 +126,4 @@ class _CompanySectionWidgetState extends ConsumerState<CompanySectionWidget> {
         ),
       ],
     );
-  }
-}
+  }}
