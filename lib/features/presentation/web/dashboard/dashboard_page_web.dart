@@ -1,5 +1,6 @@
 import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/application/job/controllers/job_provider.dart';
+import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/job_posting_status_widget.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/recent_applications_tablw_widget.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/stats_card_widget.dart';
@@ -24,81 +25,79 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authState = ref.read(authControllerProvider);
-      if (authState.isVerified) {
-        ref.read(jobProvider.notifier).loadJobs();
-      }
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(jobProvider.notifier).loadJobs();
+      ref.read(settingsProvider.notifier).loadCompanyData();
     });
   }
-
   @override
   Widget build(BuildContext context) {
-    // if (!authState.isVerified) {
-    //   return Scaffold(
-    //     backgroundColor: context.themeScaffoldCourse,
-    //     body: Column(
-    //       children: [
-    //         const CommonNavbar(),
-    //         Expanded(
-    //           child: Center(
-    //             child: Container(
-    //               padding: const EdgeInsets.all(32),
-    //               margin: const EdgeInsets.all(32),
-    //               decoration: BoxDecoration(
-    //                 color: context.themeWhite,
-    //                 borderRadius: BorderRadius.circular(12),
-    //                 boxShadow: [
-    //                   BoxShadow(
-    //                     color: Colors.black.withOpacity(0.1),
-    //                     blurRadius: 10,
-    //                     offset: const Offset(0, 4),
-    //                   ),
-    //                 ],
-    //               ),
-    //               child: Column(
-    //                 mainAxisSize: MainAxisSize.min,
-    //                 children: [
-    //                   Icon(
-    //                     Icons.verified_user_outlined,
-    //                     size: 64,
-    //                     color: Colors.orange,
-    //                   ),
-    //                   const SizedBox(height: 24),
-    //                   CustomText(
-    //                     text: 'Account Verification Required',
-    //                     fontSize: 24,
-    //                     fontWeight: FontWeight.w600,
-    //                   ),
-    //                   const SizedBox(height: 16),
-    //                   CustomText(
-    //                     text:
-    //                         'Your account is currently unverified. Please wait for admin verification to access the dashboard and create jobs.',
-    //                     fontSize: 16,
-    //                     textAlign: TextAlign.center,
-    //                     color: context.themeIconGrey,
-    //                     maxLines: 5,
-    //                   ),
-    //                   const SizedBox(height: 24),
-    //                   ElevatedButton(
-    //                     onPressed: () {
-    //                       context.go('/settings');
-    //                     },
-    //                     child: const CustomText(
-    //                       text: 'Go to Settings',
-    //                       fontSize: 16,
-    //                       fontWeight: FontWeight.w500,
-    //                     ),
-    //                   ),
-    //                 ],
-    //               ),
-    //             ),
-    //           ),
-    //         ),
-    //       ],
-    //     ),
-    //   );
-    // }
+    final authState = ref.watch(authControllerProvider);
+    if (!authState.isVerified) {
+      return Scaffold(
+        backgroundColor: context.themeScaffoldCourse,
+        body: Column(
+          children: [
+            const CommonNavbar(),
+            Expanded(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  margin: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: context.themeWhite,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.themeDark.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_user_outlined,
+                        size: 64,
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(height: 24),
+                      CustomText(
+                        text: 'Account Verification Required',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomText(
+                        text:
+                            'Your account is currently unverified. Please wait for admin verification to access the dashboard and create jobs.',
+                        fontSize: 16,
+                        textAlign: TextAlign.center,
+                        color: context.themeIconGrey,
+                        maxLines: 5,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.go(RouterConsts.settingsPath);
+                        },
+                        child: const CustomText(
+                          text: 'Go to Settings',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return _buildDashboard(context, ref);
   }

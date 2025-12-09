@@ -68,8 +68,8 @@ class CommonNavbar extends ConsumerWidget {
               _NavIconButton(
                 label: 'Jobs',
                 onPressed: 
-                // isVerified
-                //     ? 
+                isVerified
+                    ? 
                     () {
                         final currentLocation = GoRouterState.of(
                           context,
@@ -77,18 +77,18 @@ class CommonNavbar extends ConsumerWidget {
                         if (!currentLocation.contains(RouterConsts.manageJobsPath)) {
                           context.go(RouterConsts.manageJobsPath);
                         }
+                      }
+                    :
+                     () {
+                        context.showErrorSnackbar(
+                          'Please verify your account to access jobs',
+                        );
                       },
-                    // :
-                    //  () {
-                    //     context.showErrorSnackbar(
-                    //       'Please verify your account to access jobs',
-                    //     );
-                    //   },
                 showBadge: true,
                 isActive: GoRouterState.of(
                   context,
                 ).uri.toString().contains(RouterConsts.manageJobsPath),
-                // isDisabled: !isVerified,
+                isDisabled: !isVerified,
               ),
               const SizedBox(width: 20),
               _NavIconButton(
@@ -136,7 +136,7 @@ class _BrandLogo extends ConsumerWidget {
             height: 32,
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
+                  ? context.themeWhite
                   : context.themeDark,
               borderRadius: BorderRadius.circular(8),
             ),
@@ -146,7 +146,7 @@ class _BrandLogo extends ConsumerWidget {
                 style: GoogleFonts.inter(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? context.themeDark
-                      : Colors.white,
+                      : context.themeWhite,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
