@@ -1,12 +1,12 @@
-import 'package:empire_job/features/data/storage/shared_preferences.dart';
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LogoutSectionWidget extends ConsumerStatefulWidget {
   const LogoutSectionWidget({super.key});
@@ -19,21 +19,15 @@ class LogoutSectionWidget extends ConsumerStatefulWidget {
 class _LogoutSectionWidgetState extends ConsumerState<LogoutSectionWidget> {
   Future<void> _handleLogout() async {
     try {
-      await Supabase.instance.client.auth.signOut();
-      final prefs = ref.read(sharedPrefsProvider);
-      await prefs.clear();
+      await ref.read(authControllerProvider.notifier).logout();
 
       if (mounted) {
+        context.showSuccessSnackbar('Logged out successfully');
         context.go(RouterConsts.loginPath);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error logging out: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        context.showErrorSnackbar('Error logging out: $e');
       }
     }
   }
@@ -119,7 +113,7 @@ class _LogoutSectionWidgetState extends ConsumerState<LogoutSectionWidget> {
           ),
           const SizedBox(height: 32),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // PrimaryButtonWidget(
               //   text: 'Cancel',

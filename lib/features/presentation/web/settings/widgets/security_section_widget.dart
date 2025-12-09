@@ -1,12 +1,15 @@
 import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
 import 'package:empire_job/features/presentation/web/settings/widgets/settings_item_card_widget.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class SecuritySectionWidget extends ConsumerStatefulWidget {
   const SecuritySectionWidget({super.key});
 
   @override
-  ConsumerState<SecuritySectionWidget> createState() => _SecuritySectionWidgetState();
+  ConsumerState<SecuritySectionWidget> createState() =>
+      _SecuritySectionWidgetState();
 }
 
 class _SecuritySectionWidgetState extends ConsumerState<SecuritySectionWidget> {
@@ -23,39 +26,66 @@ class _SecuritySectionWidgetState extends ConsumerState<SecuritySectionWidget> {
   }
 
   Future<void> _handleUpdatePassword() async {
-    if (_newPasswordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
-      );
+    if (_oldPasswordController.text.isEmpty) {
+      context.showErrorSnackbar('Please enter your current password');
       return;
     }
 
-    if (_newPasswordController.text.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 8 characters')),
+    if (_newPasswordController.text.isEmpty) {
+      context.showErrorSnackbar('Please enter a new password');
+      return;
+    }
+
+    if (_newPasswordController.text != _confirmPasswordController.text) {
+      context.showErrorSnackbar('Passwords do not match');
+      return;
+    }
+
+    if (_newPasswordController.text.length < 6) {
+      context.showErrorSnackbar('Password must be at least 6 characters');
+      return;
+    }
+
+    if (_oldPasswordController.text == _newPasswordController.text) {
+      context.showErrorSnackbar(
+        'New password must be different from current password',
       );
       return;
     }
 
     final notifier = ref.read(settingsProvider.notifier);
-    
+
     try {
-      await notifier.changePassword();
+      await notifier.changePassword(
+        oldPassword: _oldPasswordController.text,
+        newPassword: _newPasswordController.text,
+      );
 
       if (mounted) {
         _oldPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password updated successfully')),
-        );
+        context.showSuccessSnackbar('Password updated successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating password: $e')),
-        );
+        String errorMessage;
+        if (e is String) {
+          errorMessage = e;
+        } else {
+          final errorStr = e.toString();
+          if (errorStr.contains('Current password is incorrect')) {
+            errorMessage = 'Current password is incorrect. Please check your password and try again.';
+          } else if (errorStr.contains('User not authenticated')) {
+            errorMessage = 'You are not authenticated. Please log in again.';
+          } else if (errorStr.contains('invalid') || errorStr.contains('credentials')) {
+            errorMessage = 'Current password is incorrect. Please check your password and try again.';
+          } else {
+            errorMessage = 'Failed to update password. Please try again.';
+          }
+        }
+        context.showErrorSnackbar(errorMessage);
       }
     }
   }

@@ -134,6 +134,7 @@ class _SettingsItemCardWidgetState extends State<SettingsItemCardWidget> {
                               obscureText: field.obscureText 
                                   ? (_obscureTextStates[field.label] ?? true)
                                   : false,
+                              readOnly: field.readOnly,
                               suffixIcon: field.obscureText
                                   ? IconButton(
                                       icon: Icon(
@@ -229,6 +230,7 @@ class SettingsField {
   final bool required;
   final bool obscureText;
   final int maxLines;
+  final bool readOnly;
 
   SettingsField({
     required this.label,
@@ -238,5 +240,6 @@ class SettingsField {
     this.required = true,
     this.maxLines = 1,
     this.obscureText = false,
+    this.readOnly = false,
   });
 }

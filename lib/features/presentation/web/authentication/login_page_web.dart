@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
 import 'package:flutter/material.dart';
@@ -5,16 +8,17 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class LoginPageWeb extends StatefulWidget {
+class LoginPageWeb extends ConsumerStatefulWidget {
   const LoginPageWeb({super.key});
 
   @override
-  State<LoginPageWeb> createState() => _LoginPageWebState();
+  ConsumerState<LoginPageWeb> createState() => _LoginPageWebState();
 }
 
-class _LoginPageWebState extends State<LoginPageWeb> {
+class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -28,28 +32,102 @@ class _LoginPageWebState extends State<LoginPageWeb> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState?.validate() ?? false) {}
+  void _showError(String message) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    try {
+      log('Attempting login...');
+      
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+
+      if (!mounted) return;
+
+      final authState = ref.read(authControllerProvider);
+      
+      if (authState.isAuthenticated) {
+        log('Login successful');
+        _showSuccess('Login successful!');
+        context.go(RouterConsts.dashboardPath);
+      } else if (authState.error != null && authState.error!.isNotEmpty) {
+        log('Login failed: ${authState.error}');
+        _showError(authState.error!);
+      } else {
+        log('Login failed: Unknown error');
+        _showError('Login failed. Please try again.');
+      }
+    } catch (e) {
+      log('Login exception: $e');
+      if (!mounted) return;
+            final authState = ref.read(authControllerProvider);
+      final errorMessage = authState.error ?? e.toString();
+      _showError(errorMessage);
+    }
   }
 
   void _handleForgotPassword() {}
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 1100;
+    
+    if (!authState.isCheckingAuth && authState.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go(RouterConsts.dashboardPath);
+        }
+      });
+    }
+    
+    if (authState.isCheckingAuth) {
+      return Scaffold(
+        backgroundColor: ColorConsts.white,
+        body: Center(
+          child: CircularProgressIndicator(color: ColorConsts.primaryColor),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: context.themeScaffold,
       body: Container(
-        constraints: BoxConstraints(
-          minHeight: size.height,
-        ),
+        constraints: BoxConstraints(minHeight: size.height),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 32
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -74,6 +152,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                         fontSize: 20,
                         fontWeight: FontWeight.w500,
                         maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 76),
                       CustomText(
@@ -89,9 +168,19 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                             'Enter the email associated with your account.',
                         requiredField: true,
                         hintSize: 14,
+                        suffixIcon: SizedBox(),
                         keyboardType: TextInputType.emailAddress,
                         useFloatingLabel: true,
                         borderColor: context.themeIconGrey,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return 'Please enter a valid email address';
+                          }
+                          return null;
+                        },
                         onChanged: (value) {},
                       ),
                       const SizedBox(height: 40),
@@ -111,6 +200,31 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                         borderRadius: 12,
                         height: 50,
                         borderColor: context.themeIconGrey,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Password is required';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                        suffixIcon: IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: context.themeIconGrey,
+                            size: 16,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                       ),
                       const SizedBox(height: 18),
                       Row(
@@ -154,13 +268,13 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                       ),
                       const SizedBox(height: 36),
                       PrimaryButtonWidget(
-                        text: 'Login',
+                        text: authState.isLoading ? 'Logging in...' : 'Login',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         showShadow: true,
                         showBorder: false,
                         offset: 4,
-                        onPressed: _handleLogin,
+                        onPressed: authState.isLoading ? () {} : _handleLogin,
                       ),
                       const SizedBox(height: 48),
                       Row(

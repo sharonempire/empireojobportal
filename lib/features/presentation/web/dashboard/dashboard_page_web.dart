@@ -1,24 +1,125 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
+import 'package:empire_job/features/application/job/controllers/job_provider.dart';
+import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/job_posting_status_widget.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/recent_applications_tablw_widget.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/stats_card_widget.dart';
 import 'package:empire_job/features/presentation/widgets/common_navbar.dart';
 import 'package:empire_job/features/presentation/widgets/responsive_horizontal_scroll.dart';
+import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardPageWeb extends StatelessWidget {
+class DashboardPageWeb extends ConsumerStatefulWidget {
   const DashboardPageWeb({super.key});
 
   @override
+  ConsumerState<DashboardPageWeb> createState() => _DashboardPageWebState();
+}
+
+class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
+  @override
+  void initState() {
+    super.initState();
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(jobProvider.notifier).loadJobs();
+      ref.read(settingsProvider.notifier).loadCompanyData();
+    });
+  }
+  @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    if (!authState.isVerified) {
+      return Scaffold(
+        backgroundColor: context.themeScaffoldCourse,
+        body: Column(
+          children: [
+            const CommonNavbar(),
+            Expanded(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  margin: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: context.themeWhite,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.themeDark.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_user_outlined,
+                        size: 64,
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(height: 24),
+                      CustomText(
+                        text: 'Account Verification Required',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomText(
+                        text:
+                            'Your account is currently unverified. Please wait for admin verification to access the dashboard and create jobs.',
+                        fontSize: 16,
+                        textAlign: TextAlign.center,
+                        color: context.themeIconGrey,
+                        maxLines: 5,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.go(RouterConsts.settingsPath);
+                        },
+                        child: const CustomText(
+                          text: 'Go to Settings',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return _buildDashboard(context, ref);
+  }
+
+  Widget _buildDashboard(BuildContext context, WidgetRef ref) {
+    final jobState = ref.watch(jobProvider);
+    
+    final totalJobs = jobState.jobs.length;
+    final activeJobs = jobState.jobs.where((job) {
+      final status = job.status.toLowerCase();
+      return status == 'active' || status == 'pending';
+    }).length;
+    final closedJobs = jobState.jobs.where((job) {
+      return job.status.toLowerCase() == 'closed';
+    }).length;
+    
+    final latestJobs = jobState.jobs.take(10).toList();
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
       body: Column(
         children: [
           CommonNavbar(),
-          
           Expanded(
             child: ResponsiveHorizontalScroll(
               child: SingleChildScrollView(
@@ -53,21 +154,41 @@ class DashboardPageWeb extends StatelessWidget {
                             const SizedBox(height: 16),
                             Align(
                               alignment: Alignment.centerRight,
-                              child: TextButton.icon(
-                                onPressed: () {
-                                  context.go('/createJob');
+                              child: Consumer(
+                                builder: (context, ref, _) {
+                                  final authState = ref.watch(authControllerProvider);
+                                  return TextButton.icon(
+                                    onPressed: 
+                                    authState.isVerified
+                                        ?
+                                         () {
+                                            context.go(RouterConsts.createJobPath);
+                                          }
+                                        : 
+                                        () {
+                                            context.showErrorSnackbar(
+                                              'Please verify your account to create jobs',
+                                            );
+                                          },
+                                        
+                                    
+                                    icon: Icon(
+                                      Icons.add,
+                                      size: 18,
+                                      color: authState.isVerified
+                                          ? context.themeBlueText
+                                          : context.themeIconGrey,
+                                    ),
+                                    label: CustomText(
+                                      text: 'Post a New Job',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: authState.isVerified
+                                          ? context.themeBlueText
+                                          : context.themeIconGrey,
+                                    ),
+                                  );
                                 },
-                                icon: Icon(
-                                  Icons.add,
-                                  size: 18,
-                                  color: context.themeBlueText,
-                                ),
-                                label: CustomText(
-                                  text: 'Post a New Job',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: context.themeBlueText,
-                                ),
                               ),
                             ),
                           ],
@@ -80,7 +201,7 @@ class DashboardPageWeb extends StatelessWidget {
                             child: StatsCard(
                               icon: Icons.trending_up,
                               title: 'Total Jobs Posted',
-                              value: '125',
+                              value: totalJobs.toString(),
                             ),
                           ),
                           const SizedBox(width: 30),
@@ -88,7 +209,7 @@ class DashboardPageWeb extends StatelessWidget {
                             child: StatsCard(
                               icon: Icons.trending_up,
                               title: 'Active Jobs',
-                              value: '125',
+                              value: activeJobs.toString(),
                             ),
                           ),
                           const SizedBox(width: 30),
@@ -96,7 +217,7 @@ class DashboardPageWeb extends StatelessWidget {
                             child: StatsCard(
                               icon: Icons.trending_up,
                               title: 'Application Received',
-                              value: '1250',
+                              value: '0',
                             ),
                           ),
                           const SizedBox(width: 30),
@@ -104,7 +225,7 @@ class DashboardPageWeb extends StatelessWidget {
                             child: StatsCard(
                               icon: Icons.trending_up,
                               title: 'Closed Jobs',
-                              value: '84',
+                              value: closedJobs.toString(),
                             ),
                           ),
                         ],
@@ -115,7 +236,7 @@ class DashboardPageWeb extends StatelessWidget {
                         children: [
                           Expanded(flex: 3, child: RecentApplicationsTable()),
                           const SizedBox(width: 24),
-                          Expanded(flex: 2, child: JobPostingStatus()),
+                          Expanded(flex: 2, child: JobPostingStatus(jobs: latestJobs)),
                         ],
                       ),
                     ],

@@ -1,20 +1,23 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class SignupPageWeb extends StatefulWidget {
+class SignupPageWeb extends ConsumerStatefulWidget {
   const SignupPageWeb({super.key});
 
   @override
-  State<SignupPageWeb> createState() => _SignupPageWebState();
+  ConsumerState<SignupPageWeb> createState() => _SignupPageWebState();
 }
 
-class _SignupPageWebState extends State<SignupPageWeb> {
+class _SignupPageWebState extends ConsumerState<SignupPageWeb> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -32,8 +35,23 @@ class _SignupPageWebState extends State<SignupPageWeb> {
     super.dispose();
   }
 
-  void _handleRegister() {
-    context.go(RouterConsts.dashboardPath);
+  Future<void> _handleRegister() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      try {
+        await ref.read(authControllerProvider.notifier).signup(
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+              companyName: _companyController.text.trim(),
+            );
+
+        if (mounted) {
+          context.showSuccessSnackbar('Account created successfully! Please login to continue.');
+          context.go(RouterConsts.loginPath);
+        }
+      } catch (e) {
+   
+      }
+    }
   }
 
   void _handleLogin() {
@@ -42,6 +60,7 @@ class _SignupPageWebState extends State<SignupPageWeb> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 1100;
 
@@ -99,6 +118,15 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                             keyboardType: TextInputType.text,
                             useFloatingLabel: true,
                             borderColor: context.themeIconGrey,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Company name is required';
+                              }
+                              if (value.trim().length < 2) {
+                                return 'Company name must be at least 2 characters';
+                              }
+                              return null;
+                            },
                             onChanged: (value) {},
                           ),
                           const SizedBox(height: 40),
@@ -118,6 +146,15 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                             keyboardType: TextInputType.emailAddress,
                             useFloatingLabel: true,
                             borderColor: context.themeIconGrey,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Email is required';
+                              }
+                              if (!value.contains('@') || !value.contains('.')) {
+                                return 'Please enter a valid email address';
+                              }
+                              return null;
+                            },
                             onChanged: (value) {},
                           ),
                           const SizedBox(height: 40),
@@ -137,6 +174,31 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                             borderRadius: 12,
                             height: 50,
                             borderColor: context.themeIconGrey,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password is required';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                            suffixIcon: IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: context.themeIconGrey,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
                           ),
                           const SizedBox(height: 40),
                           CustomText(
@@ -155,17 +217,49 @@ class _SignupPageWebState extends State<SignupPageWeb> {
                             useFloatingLabel: true,
                             borderRadius: 12,
                             borderColor: context.themeIconGrey,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please confirm your password';
+                              }
+                              if (value != _passwordController.text) {
+                                return 'Passwords do not match';
+                              }
+                              return null;
+                            },
+                            suffixIcon: IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                                color: context.themeIconGrey,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureConfirmPassword =
+                                      !_obscureConfirmPassword;
+                                });
+                              },
+                            ),
                             onChanged: (value) {},
                           ),
                           const SizedBox(height: 36),
                           PrimaryButtonWidget(
-                            text: 'Create Account',
+                            text: authState.isLoading
+                                ? 'Creating Account...'
+                                : 'Create Account',
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             showShadow: true,
                             showBorder: false,
                             offset: 4,
-                            onPressed: _handleRegister,
+                            onPressed: authState.isLoading
+                                ? () {}
+                                : () {
+                                    _handleRegister();
+                                  },
                           ),
                           const SizedBox(height: 48),
                           Row(

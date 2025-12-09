@@ -36,7 +36,8 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-        final themeMode = ref.watch(themeModeProvider);
+    final themeMode = ref.watch(themeModeProvider);
+    final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
       title: 'Empire Job',
@@ -92,7 +93,7 @@ class MyApp extends ConsumerWidget {
         iconTheme: const IconThemeData(color: ColorConsts.darkTextColor),
       ),
       themeMode: themeMode,
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }
