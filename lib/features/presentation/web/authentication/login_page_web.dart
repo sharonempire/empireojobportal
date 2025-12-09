@@ -58,6 +58,23 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
     final authState = ref.watch(authControllerProvider);
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 1100;
+        if (!authState.isCheckingAuth && authState.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go(RouterConsts.dashboardPath);
+        }
+      });
+    }
+        if (authState.isCheckingAuth) {
+      return Scaffold(
+        backgroundColor: ColorConsts.white,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: ColorConsts.primaryColor,
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: context.themeScaffold,

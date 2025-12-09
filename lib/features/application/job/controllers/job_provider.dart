@@ -1,62 +1,23 @@
 import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
+import 'package:empire_job/features/application/job/models/job_state.dart';
 import 'package:empire_job/features/data/job/job_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class JobState {
-  // For single job (ADD/EDIT scenario)
-  final JobModel currentJob;
-  
-  // For job list (GET scenario)
-  final List<JobModel> jobs;
-  
-  // Loading and error states
-  final bool isLoadingJobs;
-  final bool isSubmittingJob;
-  final String? error;
 
-  JobState({
-    JobModel? currentJob,
-    List<JobModel>? jobs,
-    this.isLoadingJobs = false,
-    this.isSubmittingJob = false,
-    this.error,
-  })  : currentJob = currentJob ?? JobModel(),
-        jobs = jobs ?? const [];
-
-  JobState copyWith({
-    JobModel? currentJob,
-    List<JobModel>? jobs,
-    bool? isLoadingJobs,
-    bool? isSubmittingJob,
-    String? error,
-  }) {
-    return JobState(
-      currentJob: currentJob ?? this.currentJob,
-      jobs: jobs ?? this.jobs,
-      isLoadingJobs: isLoadingJobs ?? this.isLoadingJobs,
-      isSubmittingJob: isSubmittingJob ?? this.isSubmittingJob,
-      error: error,
-    );
-  }
-}
 
 class JobNotifier extends StateNotifier<JobState> {
   final Ref ref;
 
   JobNotifier(this.ref) : super(JobState());
 
-  // Getters for convenience
   int get currentStep => state.currentJob.currentStep;
   JobModel get currentJob => state.currentJob;
   List<JobModel> get jobs => state.jobs;
   bool get isLoadingJobs => state.isLoadingJobs;
   bool get isSubmittingJob => state.isSubmittingJob;
-  String? get error => state.error;
-
-  // ========== SINGLE JOB METHODS (ADD/EDIT scenario) ==========
-  
+  String? get error => state.error;  
   void setJobTitle(String? value) {
     state = state.copyWith(
       currentJob: state.currentJob.copyWithFormFields(jobTitle: value),
@@ -226,8 +187,6 @@ class JobNotifier extends StateNotifier<JobState> {
         jobModel: state.currentJob,
         status: 'pending',
       );
-
-      // Reset the form and reload jobs list
       resetJob();
       await loadJobs();
       
@@ -241,8 +200,6 @@ class JobNotifier extends StateNotifier<JobState> {
       rethrow;
     }
   }
-
-  // ========== JOB LIST METHODS (GET scenario) ==========
 
   Future<void> loadJobs() async {
     state = state.copyWith(isLoadingJobs: true, error: null);

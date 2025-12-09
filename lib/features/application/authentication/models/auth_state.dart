@@ -1,5 +1,6 @@
 class AuthState {
   final bool isLoading;
+  final bool isCheckingAuth;
   final String? error;
   final bool isAuthenticated;
   final String? userId;
@@ -10,6 +11,7 @@ class AuthState {
 
   AuthState({
     required this.isLoading,
+    this.isCheckingAuth = false,
     this.error,
     required this.isAuthenticated,
     this.userId,
@@ -22,6 +24,7 @@ class AuthState {
   factory AuthState.initial() {
     return AuthState(
       isLoading: false,
+      isCheckingAuth: true,
       isAuthenticated: false,
     );
   }
@@ -35,6 +38,7 @@ class AuthState {
   }) {
     return AuthState(
       isLoading: false,
+      isCheckingAuth: false,
       isAuthenticated: true,
       userId: userId,
       email: email,
@@ -46,6 +50,7 @@ class AuthState {
 
   AuthState copyWith({
     bool? isLoading,
+    bool? isCheckingAuth,
     String? error,
     bool? isAuthenticated,
     String? userId,
@@ -56,6 +61,7 @@ class AuthState {
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
+      isCheckingAuth: isCheckingAuth ?? this.isCheckingAuth,
       error: error,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       userId: userId ?? this.userId,
