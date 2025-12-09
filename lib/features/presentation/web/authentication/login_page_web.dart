@@ -1,20 +1,23 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class LoginPageWeb extends StatefulWidget {
+class LoginPageWeb extends ConsumerStatefulWidget {
   const LoginPageWeb({super.key});
 
   @override
-  State<LoginPageWeb> createState() => _LoginPageWebState();
+  ConsumerState<LoginPageWeb> createState() => _LoginPageWebState();
 }
 
-class _LoginPageWebState extends State<LoginPageWeb> {
+class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -28,14 +31,31 @@ class _LoginPageWebState extends State<LoginPageWeb> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState?.validate() ?? false) {}
+  Future<void> _handleLogin() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      try {
+        await ref.read(authControllerProvider.notifier).login(
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+            );
+
+        if (mounted) {
+          context.showSuccessSnackbar('Login successful!');
+          context.go(RouterConsts.dashboardPath);
+        }
+      } catch (e) {
+        if (mounted) {
+          context.showErrorSnackbar(e.toString());
+        }
+      }
+    }
   }
 
   void _handleForgotPassword() {}
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 1100;
 
@@ -92,6 +112,15 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                         keyboardType: TextInputType.emailAddress,
                         useFloatingLabel: true,
                         borderColor: context.themeIconGrey,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return 'Please enter a valid email address';
+                          }
+                          return null;
+                        },
                         onChanged: (value) {},
                       ),
                       const SizedBox(height: 40),
@@ -111,6 +140,31 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                         borderRadius: 12,
                         height: 50,
                         borderColor: context.themeIconGrey,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Password is required';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                        suffixIcon: IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: context.themeIconGrey,
+                            size: 16,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                       ),
                       const SizedBox(height: 18),
                       Row(
@@ -154,13 +208,17 @@ class _LoginPageWebState extends State<LoginPageWeb> {
                       ),
                       const SizedBox(height: 36),
                       PrimaryButtonWidget(
-                        text: 'Login',
+                        text: authState.isLoading ? 'Logging in...' : 'Login',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         showShadow: true,
                         showBorder: false,
                         offset: 4,
-                        onPressed: _handleLogin,
+                        onPressed: authState.isLoading
+                            ? () {}
+                            : () {
+                                _handleLogin();
+                              },
                       ),
                       const SizedBox(height: 48),
                       Row(

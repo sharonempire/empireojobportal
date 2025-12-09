@@ -143,6 +143,12 @@ class CommonTextfieldWidget extends StatelessWidget {
           ),
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
+          suffixIconConstraints: suffixIcon != null
+              ? const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                )
+              : null,
           floatingLabelBehavior: useFloatingLabel
               ? FloatingLabelBehavior.auto
               : FloatingLabelBehavior.never,
@@ -189,8 +195,16 @@ class CommonTextfieldWidget extends StatelessWidget {
           filled: true,
           fillColor: fillColor ?? context.themeWhite,
           contentPadding: useFloatingLabel
-              ? const EdgeInsets.symmetric(horizontal: 0, vertical: 0)
-              : const EdgeInsets.symmetric(horizontal: 8),
+              ? EdgeInsets.only(
+                  left: 0,
+                  right: 0,
+                  top: suffixIcon != null ? (height ?? 50) / 2 - 10 : 0,
+                  bottom: suffixIcon != null ? (height ?? 50) / 2 - 10 : 0,
+                )
+              : EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: (height ?? 50) / 2 - 12, // Center text vertically
+                ),
         ),
         validator: buildValidator(),
       ),
