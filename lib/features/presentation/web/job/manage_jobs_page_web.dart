@@ -1,9 +1,11 @@
 import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
+import 'package:empire_job/features/presentation/widgets/common_dialog_action_popup_widget.dart';
 import 'package:empire_job/features/presentation/widgets/common_navbar.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/responsive_horizontal_scroll.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -77,27 +79,7 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
                             child: CircularProgressIndicator(),
                           ),
                         )
-                      else if (jobState.error != null)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Column(
-                              children: [
-                                CustomText(
-                                  text: 'Error loading jobs: ${jobState.error}',
-                                  color: Colors.red,
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ref.read(jobProvider.notifier).refreshJobs();
-                                  },
-                                  child: const CustomText(text: 'Retry'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
+                
                       else if (jobState.jobs.isEmpty)
                         Center(
                           child: Padding(
@@ -194,11 +176,18 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                CustomText(
-                  text: job.status.toUpperCase(),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: statusColor,
+                GestureDetector(
+                  onTap: () {
+                    if (job.id != null && job.status.toLowerCase() != 'closed') {
+                      _showCloseJobDialog(context, ref, job);
+                    }
+                  },
+                  child: CustomText(
+                    text: job.status.toUpperCase(),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: statusColor,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 CustomText(
@@ -214,6 +203,48 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
         const SizedBox(height: 12),
         Divider(color: context.themeDivider),
         const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  void _showCloseJobDialog(
+    BuildContext context,
+    WidgetRef ref,
+    JobModel job,
+  ) {
+    CommonDialogWidget.show(
+      context: context,
+      title: 'Close Job',
+      subtitle: 'Are you sure you want to close "${job.jobTitle ?? 'this job'}"?',
+      actions: [
+        DialogAction(
+          text: 'Cancel',
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          showBorder: true,
+        ),
+        DialogAction(
+          text: 'Close Job',
+          onPressed: () async {
+            Navigator.of(context).pop();
+            try {
+              await ref.read(jobProvider.notifier).updateJobStatus(
+                    jobId: job.id!,
+                    status: 'closed',
+                  );
+              if (context.mounted) {
+                context.showSuccessSnackbar('Job closed successfully');
+              }
+            } catch (e) {
+              if (context.mounted) {
+                context.showErrorSnackbar('Failed to close job: ${e.toString()}');
+              }
+            }
+          },
+          backgroundColor: context.themeDark,
+          textColor: context.themeWhite,
+        ),
       ],
     );
   }

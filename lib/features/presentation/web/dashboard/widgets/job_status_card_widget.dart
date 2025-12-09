@@ -55,9 +55,11 @@ class JobStatusCard extends StatelessWidget {
                 height: 24,
                 width: 65,
                 decoration: BoxDecoration(
-                  color: status == 'Active'
+                  color: status.toLowerCase() == 'active' || status.toLowerCase() == 'pending'
                       ? context.themeBlueButton
-                      : Colors.red[50],
+                      : status.toLowerCase() == 'closed'
+                          ? Colors.red[50]
+                          : Colors.grey[200],
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Center(
@@ -65,9 +67,11 @@ class JobStatusCard extends StatelessWidget {
                     text: status,
                     fontSize: 10,
                     fontWeight: FontWeight.w400,
-                    color: status == 'Active'
+                    color: status.toLowerCase() == 'active' || status.toLowerCase() == 'pending'
                         ? context.themeBlueText
-                        : Colors.red,
+                        : status.toLowerCase() == 'closed'
+                            ? Colors.red
+                            : Colors.grey[700],
                   ),
                 ),
               ),

@@ -236,6 +236,24 @@ class JobNotifier extends StateNotifier<JobState> {
   void refreshJobs() {
     loadJobs();
   }
+
+  Future<void> updateJobStatus({
+    required String jobId,
+    required String status,
+  }) async {
+    try {
+      final jobRepository = ref.read(jobRepositoryProvider);
+      await jobRepository.updateJobStatus(
+        jobId: jobId,
+        status: status,
+      );
+      await loadJobs();
+    } catch (e) {
+      debugPrint('Error updating job status: $e');
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    }
+  }
 }
 
 final jobProvider = StateNotifierProvider<JobNotifier, JobState>((ref) {

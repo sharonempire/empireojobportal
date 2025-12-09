@@ -87,5 +87,27 @@ class JobRepository {
       rethrow;
     }
   }
+
+  Future<JobModel> updateJobStatus({
+    required String jobId,
+    required String status,
+  }) async {
+    try {
+      final response = await networkService.update(
+        table: SupabaseTables.jobs,
+        id: jobId,
+        data: {'status': status},
+      );
+
+      if (response == null) {
+        throw 'Failed to update job status';
+      }
+
+      return JobModel.fromMap(response);
+    } catch (e) {
+      debugPrint('Error updating job status: $e');
+      rethrow;
+    }
+  }
 }
 

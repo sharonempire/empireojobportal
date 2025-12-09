@@ -1,19 +1,13 @@
+import 'package:empire_job/features/application/job/models/job_model.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/job_status_card_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:flutter/material.dart';
 
 class JobPostingStatus extends StatelessWidget {
-  final List<Map<String, dynamic>> jobs = [
-    {'title': 'Software Developer', 'date': '3 days ago', 'status': 'Active'},
-    {'title': 'Frontend Engineer', 'date': '3 days ago', 'status': 'Draft'},
-    {'title': 'HR Executive', 'date': '3 days ago', 'status': 'Active'},
-    {'title': 'Software Developer', 'date': '3 days ago', 'status': 'Active'},
-    {'title': 'Data Analyst', 'date': '3 days ago', 'status': 'Draft'},
-    {'title': 'Software Developer', 'date': '3 days ago', 'status': 'Draft'},
-  ];
+  final List<JobModel> jobs;
 
-   JobPostingStatus({super.key});
+  const JobPostingStatus({super.key, required this.jobs});
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +33,22 @@ class JobPostingStatus extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 28),
-          ...jobs.map((job) => JobStatusCard(
-            title: job['title'],
-            date: job['date'],
-            status: job['status'],
-          )),
+          if (jobs.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: CustomText(
+                text: 'No jobs posted yet',
+                fontSize: 14,
+                color: context.themeIconGrey,
+                textAlign: TextAlign.center,
+              ),
+            )
+          else
+            ...jobs.map((job) => JobStatusCard(
+                  title: job.jobTitle ?? 'Untitled Job',
+                  date: job.formattedDate,
+                  status: job.status,
+                )),
         ],
       ),
     );
