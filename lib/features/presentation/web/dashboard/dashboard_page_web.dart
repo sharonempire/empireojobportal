@@ -1,3 +1,4 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/job_posting_status_widget.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/recent_applications_tablw_widget.dart';
 import 'package:empire_job/features/presentation/web/dashboard/widgets/stats_card_widget.dart';
@@ -5,14 +6,89 @@ import 'package:empire_job/features/presentation/widgets/common_navbar.dart';
 import 'package:empire_job/features/presentation/widgets/responsive_horizontal_scroll.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class DashboardPageWeb extends StatelessWidget {
+class DashboardPageWeb extends ConsumerWidget {
   const DashboardPageWeb({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+
+    // Check if user is verified
+    if (!authState.isVerified) {
+      return Scaffold(
+        backgroundColor: context.themeScaffoldCourse,
+        body: Column(
+          children: [
+            const CommonNavbar(),
+            Expanded(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  margin: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: context.themeWhite,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_user_outlined,
+                        size: 64,
+                        color: Colors.orange,
+                      ),
+                      const SizedBox(height: 24),
+                      CustomText(
+                        text: 'Account Verification Required',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(height: 16),
+                      CustomText(
+                        text:
+                            'Your account is currently unverified. Please wait for admin verification to access the dashboard and create jobs.',
+                        fontSize: 16,
+                        textAlign: TextAlign.center,
+                        color: context.themeIconGrey,
+                        maxLines: 5,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.go('/settings');
+                        },
+                        child: const CustomText(
+                          text: 'Go to Settings',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return _buildDashboard(context);
+  }
+
+  Widget _buildDashboard(BuildContext context) {
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
       body: Column(
@@ -53,21 +129,36 @@ class DashboardPageWeb extends StatelessWidget {
                             const SizedBox(height: 16),
                             Align(
                               alignment: Alignment.centerRight,
-                              child: TextButton.icon(
-                                onPressed: () {
-                                  context.go('/createJob');
+                              child: Consumer(
+                                builder: (context, ref, _) {
+                                  final authState = ref.watch(authControllerProvider);
+                                  return TextButton.icon(
+                                    onPressed: authState.isVerified
+                                        ? () {
+                                            context.go('/createJob');
+                                          }
+                                        : () {
+                                            context.showErrorSnackbar(
+                                              'Please verify your account to create jobs',
+                                            );
+                                          },
+                                    icon: Icon(
+                                      Icons.add,
+                                      size: 18,
+                                      color: authState.isVerified
+                                          ? context.themeBlueText
+                                          : context.themeIconGrey,
+                                    ),
+                                    label: CustomText(
+                                      text: 'Post a New Job',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: authState.isVerified
+                                          ? context.themeBlueText
+                                          : context.themeIconGrey,
+                                    ),
+                                  );
                                 },
-                                icon: Icon(
-                                  Icons.add,
-                                  size: 18,
-                                  color: context.themeBlueText,
-                                ),
-                                label: CustomText(
-                                  text: 'Post a New Job',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: context.themeBlueText,
-                                ),
                               ),
                             ),
                           ],

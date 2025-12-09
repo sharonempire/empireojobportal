@@ -1,3 +1,4 @@
+import 'package:empire_job/features/application/authentication/models/auth_state.dart';
 import 'package:empire_job/features/data/authentication/auth_repository.dart';
 import 'package:empire_job/features/data/authentication/models/auth_models.dart';
 import 'package:empire_job/features/data/storage/shared_preferences.dart';
@@ -24,13 +25,29 @@ class AuthController extends StateNotifier<AuthState> {
     _checkAuthStatus();
   }
 
-  void _checkAuthStatus() {
+  /// Refresh verification status
+  Future<void> refreshVerificationStatus() async {
+    if (state.isAuthenticated && state.userId != null) {
+      final isVerified = await authRepository.isUserVerified();
+      final status = await authRepository.getUserStatus();
+      state = state.copyWith(
+        isVerified: isVerified,
+        status: status,
+      );
+    }
+  }
+
+  Future<void> _checkAuthStatus() async {
     if (authRepository.isAuthenticated()) {
       final user = authRepository.getCurrentUser();
       if (user != null) {
+        final isVerified = await authRepository.isUserVerified();
+        final status = await authRepository.getUserStatus();
         state = AuthState.authenticated(
           userId: user.id,
           email: user.email ?? '',
+          isVerified: isVerified,
+          status: status,
         );
       }
     }
@@ -59,10 +76,13 @@ class AuthController extends StateNotifier<AuthState> {
         'company_name': response.companyName,
       });
 
+      // New signup users are unverified
       state = AuthState.authenticated(
         userId: response.userId,
         email: response.email,
         companyName: response.companyName,
+        isVerified: false,
+        status: 'unverified',
       );
     } catch (e) {
       state = state.copyWith(
@@ -94,10 +114,16 @@ class AuthController extends StateNotifier<AuthState> {
         'company_name': response.companyName,
       });
 
+      // Check verification status
+      final isVerified = await authRepository.isUserVerified();
+      final status = await authRepository.getUserStatus();
+
       state = AuthState.authenticated(
         userId: response.userId,
         email: response.email,
         companyName: response.companyName,
+        isVerified: isVerified,
+        status: status,
       );
     } catch (e) {
       state = state.copyWith(
@@ -126,60 +152,5 @@ class AuthController extends StateNotifier<AuthState> {
   }
 }
 
-class AuthState {
-  final bool isLoading;
-  final String? error;
-  final bool isAuthenticated;
-  final String? userId;
-  final String? email;
-  final String? companyName;
 
-  AuthState({
-    required this.isLoading,
-    this.error,
-    required this.isAuthenticated,
-    this.userId,
-    this.email,
-    this.companyName,
-  });
-
-  factory AuthState.initial() {
-    return AuthState(
-      isLoading: false,
-      isAuthenticated: false,
-    );
-  }
-
-  factory AuthState.authenticated({
-    required String userId,
-    required String email,
-    String? companyName,
-  }) {
-    return AuthState(
-      isLoading: false,
-      isAuthenticated: true,
-      userId: userId,
-      email: email,
-      companyName: companyName,
-    );
-  }
-
-  AuthState copyWith({
-    bool? isLoading,
-    String? error,
-    bool? isAuthenticated,
-    String? userId,
-    String? email,
-    String? companyName,
-  }) {
-    return AuthState(
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      userId: userId ?? this.userId,
-      email: email ?? this.email,
-      companyName: companyName ?? this.companyName,
-    );
-  }
-}
 

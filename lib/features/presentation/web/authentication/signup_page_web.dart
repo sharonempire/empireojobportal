@@ -45,8 +45,8 @@ class _SignupPageWebState extends ConsumerState<SignupPageWeb> {
             );
 
         if (mounted) {
-          context.showSuccessSnackbar('Account created successfully!');
-          context.go(RouterConsts.dashboardPath);
+          context.showSuccessSnackbar('Account created successfully! Please login to continue.');
+          context.go(RouterConsts.loginPath);
         }
       } catch (e) {
         if (mounted) {

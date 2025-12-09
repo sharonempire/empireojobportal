@@ -1,8 +1,10 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/providers/theme_providers.dart';
 import 'package:empire_job/shared/styles/appstyles.dart';
+import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,8 @@ class CommonNavbar extends ConsumerWidget {
     final bool isSmallScreen = AppStyles.isSmallScreen(context);
     final themeMode = ref.watch(themeModeProvider);
     final isDark = themeMode == ThemeMode.dark;
+    final authState = ref.watch(authControllerProvider);
+    final isVerified = authState.isVerified;
 
     return Container(
       padding: isSmallScreen
@@ -40,33 +44,47 @@ class CommonNavbar extends ConsumerWidget {
             children: [
               _NavIconButton(
                 label: 'Dashboard',
-                onPressed: () {
-                  final currentLocation = GoRouterState.of(
-                    context,
-                  ).uri.toString();
-                  if (!currentLocation.contains(RouterConsts.dashboardPath)) {
-                    context.go(RouterConsts.dashboardPath);
-                  }
-                },
+                onPressed: isVerified
+                    ? () {
+                        final currentLocation = GoRouterState.of(
+                          context,
+                        ).uri.toString();
+                        if (!currentLocation.contains(RouterConsts.dashboardPath)) {
+                          context.go(RouterConsts.dashboardPath);
+                        }
+                      }
+                    : () {
+                        context.showErrorSnackbar(
+                          'Please verify your account to access the dashboard',
+                        );
+                      },
                 isActive: GoRouterState.of(
                   context,
                 ).uri.toString().contains(RouterConsts.dashboardPath),
+                isDisabled: !isVerified,
               ),
               const SizedBox(width: 20),
               _NavIconButton(
                 label: 'Jobs',
-                onPressed: () {
-                  final currentLocation = GoRouterState.of(
-                    context,
-                  ).uri.toString();
-                  if (!currentLocation.contains(RouterConsts.manageJobsPath)) {
-                    context.go(RouterConsts.manageJobsPath);
-                  }
-                },
+                onPressed: isVerified
+                    ? () {
+                        final currentLocation = GoRouterState.of(
+                          context,
+                        ).uri.toString();
+                        if (!currentLocation.contains(RouterConsts.manageJobsPath)) {
+                          context.go(RouterConsts.manageJobsPath);
+                        }
+                      }
+                    : () {
+                        context.showErrorSnackbar(
+                          'Please verify your account to access jobs',
+                        );
+                      },
                 showBadge: true,
                 isActive: GoRouterState.of(
                   context,
                 ).uri.toString().contains(RouterConsts.manageJobsPath),
+                isDisabled: !isVerified,
               ),
               const SizedBox(width: 20),
               _NavIconButton(
@@ -150,6 +168,7 @@ class _NavIconButton extends StatelessWidget {
   final bool showBadge;
   final bool hideLabel;
   final bool isActive;
+  final bool isDisabled;
 
   const _NavIconButton({
     // required this.icon,
@@ -158,52 +177,61 @@ class _NavIconButton extends StatelessWidget {
     this.showBadge = false,
     this.hideLabel = false,
     this.isActive = false,
+    this.isDisabled = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final textColor = isDisabled
+        ? context.themeIconGrey
+        :  context.themeDark ;
+
     return InkWell(
-      onTap: onPressed,
+      onTap: isDisabled ? null : onPressed,
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            Stack(
-              children: [
-                // SvgPicture.asset(
-                //   icon,
-                //   width: 20,
-                //   height: 20,
-                //   colorFilter: ColorFilter.mode(
-                //     Theme.of(context).iconTheme.color ?? ColorConsts.black,
-                //     BlendMode.srcIn,
-                //   ),
-                // ),
-                // if (showBadge)
-                //   Positioned(
-                //     right: 0,
-                //     top: 0,
-                //     child: Container(
-                //       width: 8,
-                //       height: 8,
-                //       decoration: const BoxDecoration(
-                //         color: Colors.red,
-                //         shape: BoxShape.circle,
-                //       ),
-                //     ),
-                //   ),
-              ],
-            ),
-            if (label != null && !hideLabel) ...[
-              const SizedBox(width: 8),
-              CustomText(
-                text: label!,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                fontSize: 14,
+      child: Opacity(
+        opacity: isDisabled ? 0.5 : 1.0,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Stack(
+                children: [
+                  // SvgPicture.asset(
+                  //   icon,
+                  //   width: 20,
+                  //   height: 20,
+                  //   colorFilter: ColorFilter.mode(
+                  //     Theme.of(context).iconTheme.color ?? ColorConsts.black,
+                  //     BlendMode.srcIn,
+                  //   ),
+                  // ),
+                  // if (showBadge)
+                  //   Positioned(
+                  //     right: 0,
+                  //     top: 0,
+                  //     child: Container(
+                  //       width: 8,
+                  //       height: 8,
+                  //       decoration: const BoxDecoration(
+                  //         color: Colors.red,
+                  //         shape: BoxShape.circle,
+                  //       ),
+                  //     ),
+                  //   ),
+                ],
               ),
+              if (label != null && !hideLabel) ...[
+                const SizedBox(width: 8),
+                CustomText(
+                  text: label!,
+                  color: textColor,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                  fontSize: 14,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

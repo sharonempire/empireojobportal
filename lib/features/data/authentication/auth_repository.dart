@@ -30,16 +30,23 @@ class AuthRepository {
       final email = authResponse.user!.email ?? request.email;
 
       try {
+        final profileData = {
+          'profile_id': userId, 
+          'email_address': email,
+          'company_name': request.companyName,
+          'status': 'unverified', // Initial status
+        };
+
         await networkService.push(
           table: SupabaseTables.jobProfiles,
-          data: {
-            'id': userId, 
-            'email_address': email,
-            'company_name': request.companyName,
-            'created_at': DateTime.now().toIso8601String(),
-          },
+          data: profileData,
         );
+      } on PostgrestException catch (e) {
+        debugPrint('Postgrest error during signup: ${e.code} - ${e.message}');
+        debugPrint('Details: ${e.details}');
+        throw 'Failed to create profile: ${networkService.parseError(e.message, 'Database error')}';
       } catch (e) {
+        debugPrint('Error creating profile: $e');
         throw 'Failed to create profile: ${e.toString()}';
       }
 
@@ -50,8 +57,10 @@ class AuthRepository {
         accessToken: authResponse.session?.accessToken,
       );
     } on AuthException catch (e) {
+      debugPrint('Auth error during signup: ${e.message}');
       throw _parseAuthError(e.message);
     } catch (e) {
+      debugPrint('General error during signup: $e');
       throw 'Signup failed: ${e.toString()}';
     }
   }
@@ -72,11 +81,14 @@ class AuthRepository {
 
       String? companyName;
       try {
-        final profile = await networkService.pullById(
+        final profiles = await networkService.pull(
           table: SupabaseTables.jobProfiles,
-          id: userId,
+          filters: {'profile_id': userId},
+          limit: 1,
         );
-        companyName = profile?['company_name'] as String?;
+        if (profiles.isNotEmpty) {
+          companyName = profiles.first['company_name'] as String?;
+        }
       } catch (e) {
         debugPrint('Profile not found for user: $userId');
       }
@@ -108,6 +120,65 @@ class AuthRepository {
 
   bool isAuthenticated() {
     return networkService.isAuthenticated;
+  }
+
+  /// Check if the current user's profile is verified
+  Future<bool> isUserVerified() async {
+    try {
+      final user = getCurrentUser();
+      if (user == null) return false;
+
+      final profiles = await networkService.pull(
+        table: SupabaseTables.jobProfiles,
+        filters: {'profile_id': user.id},
+        limit: 1,
+      );
+
+      if (profiles.isEmpty) return false;
+
+      final status = profiles.first['status'] as String?;
+      return status == 'verified';
+    } catch (e) {
+      debugPrint('Error checking verification status: $e');
+      return false;
+    }
+  }
+
+  /// Get user profile status
+  Future<String?> getUserStatus() async {
+    try {
+      final user = getCurrentUser();
+      if (user == null) return null;
+
+      final profiles = await networkService.pull(
+        table: SupabaseTables.jobProfiles,
+        filters: {'profile_id': user.id},
+        limit: 1,
+      );
+
+      if (profiles.isEmpty) return null;
+
+      return profiles.first['status'] as String?;
+    } catch (e) {
+      debugPrint('Error getting user status: $e');
+      return null;
+    }
+  }
+
+  /// Subscribe to real-time updates for job_profiles table
+  RealtimeChannel subscribeToJobProfilesRealtime({
+    void Function(PostgresChangePayload payload)? onInsert,
+    void Function(PostgresChangePayload payload)? onUpdate,
+    void Function(PostgresChangePayload payload)? onDelete,
+    PostgresChangeFilter? filter,
+  }) {
+    return networkService.subscribeToRealtime(
+      table: SupabaseTables.jobProfiles,
+      onInsert: onInsert,
+      onUpdate: onUpdate,
+      onDelete: onDelete,
+      filter: filter,
+    );
   }
 
   String _parseAuthError(String error) {
