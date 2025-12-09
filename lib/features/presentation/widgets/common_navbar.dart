@@ -86,6 +86,8 @@ class CommonNavbar extends ConsumerWidget {
                 ).uri.toString().contains(RouterConsts.settingsPath),
               ),
               const SizedBox(width: 20),
+              _NotificationIconButton(),
+              const SizedBox(width: 20),
               _ProfileSection(),
             ],
           ),
@@ -201,6 +203,57 @@ class _NavIconButton extends StatelessWidget {
                 fontSize: 14,
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationIconButton extends StatelessWidget {
+  const _NotificationIconButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = GoRouterState.of(context).uri.toString().contains(
+          RouterConsts.notificationsPath,
+        );
+    final hasUnreadNotifications = true; // TODO: Replace with actual notification state
+
+    return InkWell(
+      onTap: () {
+        if (kIsWeb) {
+          final currentLocation = GoRouterState.of(context).uri.toString();
+          if (!currentLocation.contains(RouterConsts.notificationsPath)) {
+            context.go(RouterConsts.notificationsPath);
+          }
+        }
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Stack(
+          children: [
+            Icon(
+              Icons.notifications_outlined,
+              size: 24,
+              color: isActive
+                  ? Theme.of(context).primaryColor
+                  : Theme.of(context).iconTheme.color,
+            ),
+            if (hasUnreadNotifications)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
