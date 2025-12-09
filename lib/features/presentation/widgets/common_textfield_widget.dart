@@ -203,7 +203,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                 )
               : EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: (height ?? 50) / 2 - 12, // Center text vertically
+                  vertical: (height ?? 50) / 2 - 12, 
                 ),
         ),
         validator: buildValidator(),

@@ -1,10 +1,13 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
+import 'package:empire_job/features/data/job/job_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
-
 class JobNotifier extends StateNotifier<JobModel> {
-  JobNotifier() : super(JobModel());
+  final Ref ref;
+
+  JobNotifier(this.ref) : super(JobModel());
 
   int get currentStep => state.currentStep;
 
@@ -93,10 +96,44 @@ class JobNotifier extends StateNotifier<JobModel> {
   }
 
   Future<void> submitJob() async {
+    try {
+      final authState = ref.read(authControllerProvider);
+      final userId = authState.userId;
+
+      if (userId == null) {
+        throw 'User not authenticated. Please log in to create a job.';
+      }
+
+      final jobRepository = ref.read(jobRepositoryProvider);
+
+      if (state.jobTitle == null || state.jobTitle!.isEmpty) {
+        throw 'Job title is required';
+      }
+      if (state.jobType == null || state.jobType!.isEmpty) {
+        throw 'Job type is required';
+      }
+      if (state.industryType == null || state.industryType!.isEmpty) {
+        throw 'Industry type is required';
+      }
+      if (state.workMode == null || state.workMode!.isEmpty) {
+        throw 'Work mode is required';
+      }
+
+      await jobRepository.addJob(
+        userId: userId,
+        jobModel: state,
+        status: 'pending', 
+      );
+
+      reset();
+    } catch (e) {
+      debugPrint('Error submitting job: $e');
+      rethrow;
+    }
   }
 }
 
 final jobProvider = StateNotifierProvider<JobNotifier, JobModel>((ref) {
-  return JobNotifier();
+  return JobNotifier(ref);
 });
 

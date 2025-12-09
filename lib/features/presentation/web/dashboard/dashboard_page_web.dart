@@ -18,7 +18,6 @@ class DashboardPageWeb extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
 
-    // Check if user is verified
     if (!authState.isVerified) {
       return Scaffold(
         backgroundColor: context.themeScaffoldCourse,

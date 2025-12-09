@@ -109,6 +109,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
                             'Enter the email associated with your account.',
                         requiredField: true,
                         hintSize: 14,
+                        suffixIcon: SizedBox(),
                         keyboardType: TextInputType.emailAddress,
                         useFloatingLabel: true,
                         borderColor: context.themeIconGrey,
