@@ -160,9 +160,13 @@ class AuthController extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: e is String ? e : e.toString(),
       );
-      rethrow;
+      if (e is String) {
+        throw e;
+      } else {
+        throw e.toString();
+      }
     }
   }
 

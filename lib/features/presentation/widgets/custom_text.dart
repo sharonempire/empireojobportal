@@ -35,7 +35,8 @@ class CustomText extends StatelessWidget {
       text,
       textAlign: textAlign,
       maxLines: maxLines,
-      overflow: overflow,
+      overflow: overflow ?? (maxLines != null ? TextOverflow.ellipsis : null),
+      softWrap: maxLines != null,
       style: GoogleFonts.inter(
         fontSize: fontSize,
         fontWeight: fontWeight,

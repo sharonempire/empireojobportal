@@ -49,9 +49,7 @@ class _SignupPageWebState extends ConsumerState<SignupPageWeb> {
           context.go(RouterConsts.loginPath);
         }
       } catch (e) {
-        if (mounted) {
-          context.showErrorSnackbar(e.toString());
-        }
+   
       }
     }
   }

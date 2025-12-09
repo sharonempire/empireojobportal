@@ -58,9 +58,23 @@ class AuthRepository {
       );
     } on AuthException catch (e) {
       debugPrint('Auth error during signup: ${e.message}');
-      throw _parseAuthError(e.message);
+      final errorMessage = _parseAuthError(e.message);
+      throw errorMessage;
     } catch (e) {
       debugPrint('General error during signup: $e');
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('email already registered') ||
+          errorStr.contains('already exists') ||
+          errorStr.contains('duplicate')) {
+        throw 'This email is already registered. Please use a different email or try logging in.';
+      }
+      if (errorStr.contains('weak password') ||
+          errorStr.contains('password too short')) {
+        throw 'Password is too weak. Please use at least 6 characters.';
+      }
+      if (errorStr.contains('invalid email')) {
+        throw 'Please enter a valid email address.';
+      }
       throw 'Signup failed: ${e.toString()}';
     }
   }
@@ -100,8 +114,19 @@ class AuthRepository {
         accessToken: authResponse.session?.accessToken,
       );
     } on AuthException catch (e) {
-      throw _parseAuthError(e.message);
+      debugPrint('Auth error during login: ${e.message}');
+      final errorMessage = _parseAuthError(e.message);
+      throw errorMessage;
     } catch (e) {
+      debugPrint('General error during login: $e');
+      // Check if it's an AuthApiException or similar
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('invalid') ||
+          errorStr.contains('credentials') ||
+          errorStr.contains('invalid_credentials') ||
+          errorStr.contains('authapiexception')) {
+        throw 'Invalid email or password. Please check your credentials and try again.';
+      }
       throw 'Login failed: ${e.toString()}';
     }
   }
@@ -122,7 +147,6 @@ class AuthRepository {
     return networkService.isAuthenticated;
   }
 
-  /// Check if the current user's profile is verified
   Future<bool> isUserVerified() async {
     try {
       final user = getCurrentUser();
@@ -144,7 +168,6 @@ class AuthRepository {
     }
   }
 
-  /// Get user profile status
   Future<String?> getUserStatus() async {
     try {
       final user = getCurrentUser();
@@ -165,7 +188,6 @@ class AuthRepository {
     }
   }
 
-  /// Subscribe to real-time updates for job_profiles table
   RealtimeChannel subscribeToJobProfilesRealtime({
     void Function(PostgresChangePayload payload)? onInsert,
     void Function(PostgresChangePayload payload)? onUpdate,

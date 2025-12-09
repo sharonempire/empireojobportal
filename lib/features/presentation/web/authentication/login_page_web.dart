@@ -1,7 +1,8 @@
+import 'dart:developer';
+
 import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
-import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
@@ -31,23 +32,68 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      try {
-        await ref.read(authControllerProvider.notifier).login(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            );
+  void _showError(String message) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
 
-        if (mounted) {
-          context.showSuccessSnackbar('Login successful!');
-          context.go(RouterConsts.dashboardPath);
-        }
-      } catch (e) {
-        if (mounted) {
-          context.showErrorSnackbar(e.toString());
-        }
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    try {
+      log('Attempting login...');
+      
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+
+      if (!mounted) return;
+
+      final authState = ref.read(authControllerProvider);
+      
+      if (authState.isAuthenticated) {
+        log('Login successful');
+        _showSuccess('Login successful!');
+        context.go(RouterConsts.dashboardPath);
+      } else if (authState.error != null && authState.error!.isNotEmpty) {
+        log('Login failed: ${authState.error}');
+        _showError(authState.error!);
+      } else {
+        log('Login failed: Unknown error');
+        _showError('Login failed. Please try again.');
       }
+    } catch (e) {
+      log('Login exception: $e');
+      if (!mounted) return;
+            final authState = ref.read(authControllerProvider);
+      final errorMessage = authState.error ?? e.toString();
+      _showError(errorMessage);
     }
   }
 
@@ -58,20 +104,20 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
     final authState = ref.watch(authControllerProvider);
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 1100;
-        if (!authState.isCheckingAuth && authState.isAuthenticated) {
+    
+    if (!authState.isCheckingAuth && authState.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.go(RouterConsts.dashboardPath);
         }
       });
     }
-        if (authState.isCheckingAuth) {
+    
+    if (authState.isCheckingAuth) {
       return Scaffold(
         backgroundColor: ColorConsts.white,
         body: Center(
-          child: CircularProgressIndicator(
-            color: ColorConsts.primaryColor,
-          ),
+          child: CircularProgressIndicator(color: ColorConsts.primaryColor),
         ),
       );
     }
@@ -79,14 +125,9 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
     return Scaffold(
       backgroundColor: context.themeScaffold,
       body: Container(
-        constraints: BoxConstraints(
-          minHeight: size.height,
-        ),
+        constraints: BoxConstraints(minHeight: size.height),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 32
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -111,6 +152,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
                         fontSize: 20,
                         fontWeight: FontWeight.w500,
                         maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 76),
                       CustomText(
@@ -232,11 +274,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
                         showShadow: true,
                         showBorder: false,
                         offset: 4,
-                        onPressed: authState.isLoading
-                            ? () {}
-                            : () {
-                                _handleLogin();
-                              },
+                        onPressed: authState.isLoading ? () {} : _handleLogin,
                       ),
                       const SizedBox(height: 48),
                       Row(

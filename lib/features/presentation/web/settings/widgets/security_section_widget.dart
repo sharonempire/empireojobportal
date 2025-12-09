@@ -70,7 +70,22 @@ class _SecuritySectionWidgetState extends ConsumerState<SecuritySectionWidget> {
       }
     } catch (e) {
       if (mounted) {
-        context.showErrorSnackbar('Error updating password: ${e.toString()}');
+        String errorMessage;
+        if (e is String) {
+          errorMessage = e;
+        } else {
+          final errorStr = e.toString();
+          if (errorStr.contains('Current password is incorrect')) {
+            errorMessage = 'Current password is incorrect. Please check your password and try again.';
+          } else if (errorStr.contains('User not authenticated')) {
+            errorMessage = 'You are not authenticated. Please log in again.';
+          } else if (errorStr.contains('invalid') || errorStr.contains('credentials')) {
+            errorMessage = 'Current password is incorrect. Please check your password and try again.';
+          } else {
+            errorMessage = 'Failed to update password. Please try again.';
+          }
+        }
+        context.showErrorSnackbar(errorMessage);
       }
     }
   }

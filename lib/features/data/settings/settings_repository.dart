@@ -63,22 +63,46 @@ class SettingsRepository {
       if (currentUser?.email == null) {
         throw 'User not authenticated';
       }
-
-      await networkService.auth.signInWithPassword(
-        email: currentUser!.email!,
-        password: oldPassword,
-      );
+      try {
+        await networkService.auth.signInWithPassword(
+          email: currentUser!.email!,
+          password: oldPassword,
+        );
+      } on AuthException catch (e) {
+        debugPrint('Old password verification failed: ${e.message}');
+        final errorMessage = e.message.toLowerCase();
+        if (errorMessage.contains('invalid') ||
+            errorMessage.contains('credentials') ||
+            errorMessage.contains('invalid_credentials') ||
+            errorMessage.contains('email not confirmed')) {
+          throw 'Current password is incorrect. Please check your password and try again.';
+        }
+        throw 'Current password is incorrect. Please check your password and try again.';
+      } catch (e) {
+        if (e is String) {
+          rethrow;
+        }
+        final errorStr = e.toString().toLowerCase();
+        if (errorStr.contains('invalid') ||
+            errorStr.contains('credentials') ||
+            errorStr.contains('invalid_credentials') ||
+            errorStr.contains('wrong password') ||
+            errorStr.contains('authapiexception')) {
+          throw 'Current password is incorrect. Please check your password and try again.';
+        }
+        rethrow;
+      }
 
       await networkService.auth.updateUser(
         UserAttributes(password: newPassword),
       );
     } catch (e) {
       debugPrint('Error changing password: $e');
-      if (e.toString().toLowerCase().contains('invalid') ||
-          e.toString().toLowerCase().contains('credentials')) {
-        throw 'Current password is incorrect';
+      if (e.toString().contains('Current password is incorrect') ||
+          e.toString().contains('User not authenticated')) {
+        rethrow;
       }
-      rethrow;
+      throw 'Failed to change password. Please try again.';
     }
   }
 }
