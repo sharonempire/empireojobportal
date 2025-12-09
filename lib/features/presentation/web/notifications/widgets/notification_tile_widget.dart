@@ -1,4 +1,4 @@
-import 'package:empire_job/features/presentation/web/notifications/notifications_page_web.dart';
+import 'package:empire_job/features/application/notifications/models/notification_item_model.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,7 @@ class NotificationTileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 48),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center, 
         children: [

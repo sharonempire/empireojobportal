@@ -23,7 +23,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.blue,
       title: 'Senior Software Engineer',
       timestamp: '1h ago',
-      message: 'Your job posting "Senior Software Engineer" has been published successfully.',
+      message:
+          'Your job posting "Senior Software Engineer" has been published successfully.',
       isUnread: true,
     ),
     NotificationItem(
@@ -31,7 +32,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.orange,
       title: 'Mechanical Engineer',
       timestamp: '1h 30m ago',
-      message: 'Your job posting for "Mechanical Engineer - Dubai" is pending review.',
+      message:
+          'Your job posting for "Mechanical Engineer - Dubai" is pending review.',
       isUnread: true,
     ),
     NotificationItem(
@@ -39,7 +41,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.red,
       title: 'Software Developer',
       timestamp: '1h ago',
-      message: 'You received 12 new applications for "Software Developer - Canada"',
+      message:
+          'You received 12 new applications for "Software Developer - Canada"',
       isUnread: true,
     ),
     NotificationItem(
@@ -47,7 +50,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.green,
       title: 'Software Engineer',
       timestamp: '1h ago',
-      message: 'Your job post "Sales Executive - Dubai" has reached 100+ views.',
+      message:
+          'Your job post "Sales Executive - Dubai" has reached 100+ views.',
       isUnread: false,
     ),
     NotificationItem(
@@ -55,7 +59,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.blue,
       title: 'Senior Software Engineer',
       timestamp: '1h ago',
-      message: 'Your job posting "Senior Software Engineer" has been published successfully.',
+      message:
+          'Your job posting "Senior Software Engineer" has been published successfully.',
       isUnread: true,
     ),
     NotificationItem(
@@ -63,7 +68,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.orange,
       title: 'Mechanical Engineer',
       timestamp: '1h 30m ago',
-      message: 'Your job posting for "Mechanical Engineer - Dubai" is pending review.',
+      message:
+          'Your job posting for "Mechanical Engineer - Dubai" is pending review.',
       isUnread: true,
     ),
     NotificationItem(
@@ -71,7 +77,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.red,
       title: 'Software Developer',
       timestamp: '1h ago',
-      message: 'You received 12 new applications for "Software Developer - Canada"',
+      message:
+          'You received 12 new applications for "Software Developer - Canada"',
       isUnread: true,
     ),
     NotificationItem(
@@ -79,7 +86,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
       avatarColor: Colors.green,
       title: 'Software Engineer',
       timestamp: '1h ago',
-      message: 'Your job post "Sales Executive - Dubai" has reached 100+ views.',
+      message:
+          'Your job post "Sales Executive - Dubai" has reached 100+ views.',
       isUnread: false,
     ),
   ];
@@ -103,8 +111,8 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
                 child: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 100,
-                      vertical: 24,
+                      horizontal: 60,
+                      vertical: 50,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,7 +120,7 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
                         Row(
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.arrow_back_ios,size: 18,),
+                              icon: const Icon(Icons.arrow_back_ios, size: 18),
                               onPressed: () => context.pop(),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -127,17 +135,22 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
                             FilterButtonWidget(
                               label: 'All',
                               isSelected: _selectedFilter == 'All',
-                              onTap: () => setState(() => _selectedFilter = 'All'),
+                              onTap: () =>
+                                  setState(() => _selectedFilter = 'All'),
                             ),
                             const SizedBox(width: 16),
                             FilterButtonWidget(
                               label: 'Unread',
                               isSelected: _selectedFilter == 'Unread',
-                              onTap: () => setState(() => _selectedFilter = 'Unread'),
+                              onTap: () =>
+                                  setState(() => _selectedFilter = 'Unread'),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 14),
+                        Divider(color: context.themeDivider),
+                        const SizedBox(height: 14),
+
                         Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
@@ -146,13 +159,20 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _filteredNotifications.length,
-                            separatorBuilder: (context, index) => Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: context.themeDivider,
+                            separatorBuilder: (context, index) => Column(
+                              children: [
+                                SizedBox(height: 16),
+                                Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: context.themeDivider,
+                                ),
+                                SizedBox(height: 16),
+                              ],
                             ),
                             itemBuilder: (context, index) {
-                              final notification = _filteredNotifications[index];
+                              final notification =
+                                  _filteredNotifications[index];
                               return NotificationTileWidget(
                                 notification: notification,
                               );
@@ -171,10 +191,3 @@ class _NotificationsPageWebState extends State<NotificationsPageWeb> {
     );
   }
 }
-
-
-
-
-
-
-
