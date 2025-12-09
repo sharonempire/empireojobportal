@@ -4,98 +4,196 @@ import 'package:empire_job/features/data/job/job_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class JobNotifier extends StateNotifier<JobModel> {
+class JobState {
+  // For single job (ADD/EDIT scenario)
+  final JobModel currentJob;
+  
+  // For job list (GET scenario)
+  final List<JobModel> jobs;
+  
+  // Loading and error states
+  final bool isLoadingJobs;
+  final bool isSubmittingJob;
+  final String? error;
+
+  JobState({
+    JobModel? currentJob,
+    List<JobModel>? jobs,
+    this.isLoadingJobs = false,
+    this.isSubmittingJob = false,
+    this.error,
+  })  : currentJob = currentJob ?? JobModel(),
+        jobs = jobs ?? const [];
+
+  JobState copyWith({
+    JobModel? currentJob,
+    List<JobModel>? jobs,
+    bool? isLoadingJobs,
+    bool? isSubmittingJob,
+    String? error,
+  }) {
+    return JobState(
+      currentJob: currentJob ?? this.currentJob,
+      jobs: jobs ?? this.jobs,
+      isLoadingJobs: isLoadingJobs ?? this.isLoadingJobs,
+      isSubmittingJob: isSubmittingJob ?? this.isSubmittingJob,
+      error: error,
+    );
+  }
+}
+
+class JobNotifier extends StateNotifier<JobState> {
   final Ref ref;
 
-  JobNotifier(this.ref) : super(JobModel());
+  JobNotifier(this.ref) : super(JobState());
 
-  int get currentStep => state.currentStep;
+  // Getters for convenience
+  int get currentStep => state.currentJob.currentStep;
+  JobModel get currentJob => state.currentJob;
+  List<JobModel> get jobs => state.jobs;
+  bool get isLoadingJobs => state.isLoadingJobs;
+  bool get isSubmittingJob => state.isSubmittingJob;
+  String? get error => state.error;
 
+  // ========== SINGLE JOB METHODS (ADD/EDIT scenario) ==========
+  
   void setJobTitle(String? value) {
-    state = state.copyWithFormFields(jobTitle: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(jobTitle: value),
+    );
   }
 
   void setJobType(String? value) {
-    state = state.copyWithFormFields(jobType: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(jobType: value),
+    );
   }
 
   void setMinExperience(String? value) {
-    state = state.copyWithFormFields(minExperience: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(minExperience: value),
+    );
   }
 
   void setMaxExperience(String? value) {
-    state = state.copyWithFormFields(maxExperience: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(maxExperience: value),
+    );
   }
 
   void setIndustryType(String? value) {
-    state = state.copyWithFormFields(industryType: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(industryType: value),
+    );
   }
 
   void setWorkMode(String? value) {
-    state = state.copyWithFormFields(workMode: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(workMode: value),
+    );
   }
 
   void setEducation(String? value) {
-    state = state.copyWithFormFields(education: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(education: value),
+    );
   }
 
   void setSkills(List<String> skills) {
-    state = state.copyWithFormFields(skills: skills);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(skills: skills),
+    );
   }
 
   void setRoleOverview(String? value) {
-    state = state.copyWithFormFields(roleOverview: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(roleOverview: value),
+    );
   }
 
   void setLanguages(List<String> languages) {
-    state = state.copyWithFormFields(languages: languages);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(languages: languages),
+    );
   }
 
   void setKeyResponsibilities(List<String> responsibilities) {
-    state = state.copyWithFormFields(keyResponsibilities: responsibilities);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(
+        keyResponsibilities: responsibilities,
+      ),
+    );
   }
 
   void setBenefits(List<String> benefits) {
-    state = state.copyWithFormFields(benefits: benefits);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(benefits: benefits),
+    );
   }
 
   void setCountry(String? value) {
-    state = state.copyWithFormFields(country: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(country: value),
+    );
   }
 
   void setStateProvince(String? value) {
-    state = state.copyWithFormFields(stateProvince: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(stateProvince: value),
+    );
   }
 
   void setCity(String? value) {
-    state = state.copyWithFormFields(city: value);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(city: value),
+    );
   }
 
   void setSalaryRange(double min, double max) {
-    state = state.copyWithFormFields(minSalary: min, maxSalary: max);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWithFormFields(
+        minSalary: min,
+        maxSalary: max,
+      ),
+    );
   }
 
   void setCurrentStep(int step) {
-    state = state.copyWith(currentStep: step);
+    state = state.copyWith(
+      currentJob: state.currentJob.copyWith(currentStep: step),
+    );
   }
 
   void nextStep() {
-    if (state.currentStep < 4) {
-      state = state.copyWith(currentStep: state.currentStep + 1);
+    if (state.currentJob.currentStep < 4) {
+      state = state.copyWith(
+        currentJob: state.currentJob.copyWith(
+          currentStep: state.currentJob.currentStep + 1,
+        ),
+      );
     }
   }
 
   void previousStep() {
-    if (state.currentStep > 1) {
-      state = state.copyWith(currentStep: state.currentStep - 1);
+    if (state.currentJob.currentStep > 1) {
+      state = state.copyWith(
+        currentJob: state.currentJob.copyWith(
+          currentStep: state.currentJob.currentStep - 1,
+        ),
+      );
     }
   }
 
-  void reset() {
-    state = JobModel();
+  void resetJob() {
+    state = state.copyWith(
+      currentJob: JobModel(),
+      error: null,
+    );
   }
 
   Future<void> submitJob() async {
+    state = state.copyWith(isSubmittingJob: true, error: null);
+
     try {
       final authState = ref.read(authControllerProvider);
       final userId = authState.userId;
@@ -106,34 +204,83 @@ class JobNotifier extends StateNotifier<JobModel> {
 
       final jobRepository = ref.read(jobRepositoryProvider);
 
-      if (state.jobTitle == null || state.jobTitle!.isEmpty) {
+      if (state.currentJob.jobTitle == null ||
+          state.currentJob.jobTitle!.isEmpty) {
         throw 'Job title is required';
       }
-      if (state.jobType == null || state.jobType!.isEmpty) {
+      if (state.currentJob.jobType == null ||
+          state.currentJob.jobType!.isEmpty) {
         throw 'Job type is required';
       }
-      if (state.industryType == null || state.industryType!.isEmpty) {
+      if (state.currentJob.industryType == null ||
+          state.currentJob.industryType!.isEmpty) {
         throw 'Industry type is required';
       }
-      if (state.workMode == null || state.workMode!.isEmpty) {
+      if (state.currentJob.workMode == null ||
+          state.currentJob.workMode!.isEmpty) {
         throw 'Work mode is required';
       }
 
       await jobRepository.addJob(
         userId: userId,
-        jobModel: state,
-        status: 'pending', 
+        jobModel: state.currentJob,
+        status: 'pending',
       );
 
-      reset();
+      // Reset the form and reload jobs list
+      resetJob();
+      await loadJobs();
+      
+      state = state.copyWith(isSubmittingJob: false);
     } catch (e) {
       debugPrint('Error submitting job: $e');
+      state = state.copyWith(
+        isSubmittingJob: false,
+        error: e.toString(),
+      );
       rethrow;
     }
   }
+
+  // ========== JOB LIST METHODS (GET scenario) ==========
+
+  Future<void> loadJobs() async {
+    state = state.copyWith(isLoadingJobs: true, error: null);
+
+    try {
+      final authState = ref.read(authControllerProvider);
+      final userId = authState.userId;
+
+      if (userId == null) {
+        state = state.copyWith(
+          isLoadingJobs: false,
+          error: 'User not authenticated',
+        );
+        return;
+      }
+
+      final jobRepository = ref.read(jobRepositoryProvider);
+      final jobs = await jobRepository.getJobsByUserId(userId);
+
+      state = state.copyWith(
+        jobs: jobs,
+        isLoadingJobs: false,
+        error: null,
+      );
+    } catch (e) {
+      debugPrint('Error loading jobs: $e');
+      state = state.copyWith(
+        isLoadingJobs: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void refreshJobs() {
+    loadJobs();
+  }
 }
 
-final jobProvider = StateNotifierProvider<JobNotifier, JobModel>((ref) {
+final jobProvider = StateNotifierProvider<JobNotifier, JobState>((ref) {
   return JobNotifier(ref);
 });
-

@@ -1,4 +1,4 @@
-import 'package:empire_job/features/application/job/controllers/job_list_controller.dart';
+import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
 import 'package:empire_job/features/presentation/widgets/common_navbar.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
@@ -19,13 +19,13 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(jobListProvider.notifier).loadJobs();
+      ref.read(jobProvider.notifier).loadJobs();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final jobListState = ref.watch(jobListProvider);
+    final jobState = ref.watch(jobProvider);
 
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
@@ -70,27 +70,27 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
                       const SizedBox(height: 10),
                       Divider(color: context.themeDivider),
                       const SizedBox(height: 10),
-                      if (jobListState.isLoading)
+                      if (jobState.isLoadingJobs)
                         const Center(
                           child: Padding(
                             padding: EdgeInsets.all(32.0),
                             child: CircularProgressIndicator(),
                           ),
                         )
-                      else if (jobListState.error != null)
+                      else if (jobState.error != null)
                         Center(
                           child: Padding(
                             padding: const EdgeInsets.all(32.0),
                             child: Column(
                               children: [
                                 CustomText(
-                                  text: 'Error loading jobs: ${jobListState.error}',
+                                  text: 'Error loading jobs: ${jobState.error}',
                                   color: Colors.red,
                                 ),
                                 const SizedBox(height: 16),
                                 ElevatedButton(
                                   onPressed: () {
-                                    ref.read(jobListProvider.notifier).refresh();
+                                    ref.read(jobProvider.notifier).refreshJobs();
                                   },
                                   child: const CustomText(text: 'Retry'),
                                 ),
@@ -98,7 +98,7 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
                             ),
                           ),
                         )
-                      else if (jobListState.jobs.isEmpty)
+                      else if (jobState.jobs.isEmpty)
                         Center(
                           child: Padding(
                             padding: const EdgeInsets.all(32.0),
@@ -110,7 +110,7 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
                           ),
                         )
                       else
-                        ..._buildJobListings(context, jobListState.jobs),
+                        ..._buildJobListings(context, jobState.jobs),
                     ],
                   ),
                 ),

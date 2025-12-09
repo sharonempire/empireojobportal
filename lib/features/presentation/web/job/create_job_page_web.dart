@@ -49,7 +49,8 @@ class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final jobNotifier = ref.read(jobProvider.notifier);
-    final jobModel = ref.watch(jobProvider);
+    final jobState = ref.watch(jobProvider);
+    final jobModel = jobState.currentJob;
     final currentStep = jobModel.currentStep;
 
     if (!authState.isVerified) {
