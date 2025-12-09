@@ -1,5 +1,6 @@
 import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
+
 import 'package:empire_job/features/presentation/widgets/common_dialog_action_popup_widget.dart';
 import 'package:empire_job/features/presentation/widgets/common_navbar.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
