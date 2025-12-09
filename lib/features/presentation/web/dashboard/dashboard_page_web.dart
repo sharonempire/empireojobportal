@@ -132,15 +132,20 @@ class DashboardPageWeb extends ConsumerWidget {
                                 builder: (context, ref, _) {
                                   final authState = ref.watch(authControllerProvider);
                                   return TextButton.icon(
-                                    onPressed: authState.isVerified
-                                        ? () {
+                                    onPressed: 
+                                    authState.isVerified
+                                        ?
+                                         () {
                                             context.go('/createJob');
                                           }
-                                        : () {
+                                        : 
+                                        () {
                                             context.showErrorSnackbar(
                                               'Please verify your account to create jobs',
                                             );
                                           },
+                                        
+                                    
                                     icon: Icon(
                                       Icons.add,
                                       size: 18,

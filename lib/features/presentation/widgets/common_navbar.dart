@@ -67,8 +67,10 @@ class CommonNavbar extends ConsumerWidget {
               const SizedBox(width: 20),
               _NavIconButton(
                 label: 'Jobs',
-                onPressed: isVerified
-                    ? () {
+                onPressed: 
+                isVerified
+                    ? 
+                    () {
                         final currentLocation = GoRouterState.of(
                           context,
                         ).uri.toString();
@@ -76,7 +78,8 @@ class CommonNavbar extends ConsumerWidget {
                           context.go(RouterConsts.manageJobsPath);
                         }
                       }
-                    : () {
+                    :
+                     () {
                         context.showErrorSnackbar(
                           'Please verify your account to access jobs',
                         );

@@ -52,7 +52,6 @@ class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
     final jobModel = ref.watch(jobProvider);
     final currentStep = jobModel.currentStep;
 
-    // Block access if not verified
     if (!authState.isVerified) {
       return Scaffold(
         backgroundColor: context.themeScaffoldCourse,

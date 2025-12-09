@@ -12,67 +12,67 @@ class JobNotifier extends StateNotifier<JobModel> {
   int get currentStep => state.currentStep;
 
   void setJobTitle(String? value) {
-    state = state.copyWith(jobTitle: value);
+    state = state.copyWithFormFields(jobTitle: value);
   }
 
   void setJobType(String? value) {
-    state = state.copyWith(jobType: value);
+    state = state.copyWithFormFields(jobType: value);
   }
 
   void setMinExperience(String? value) {
-    state = state.copyWith(minExperience: value);
+    state = state.copyWithFormFields(minExperience: value);
   }
 
   void setMaxExperience(String? value) {
-    state = state.copyWith(maxExperience: value);
+    state = state.copyWithFormFields(maxExperience: value);
   }
 
   void setIndustryType(String? value) {
-    state = state.copyWith(industryType: value);
+    state = state.copyWithFormFields(industryType: value);
   }
 
   void setWorkMode(String? value) {
-    state = state.copyWith(workMode: value);
+    state = state.copyWithFormFields(workMode: value);
   }
 
   void setEducation(String? value) {
-    state = state.copyWith(education: value);
+    state = state.copyWithFormFields(education: value);
   }
 
   void setSkills(List<String> skills) {
-    state = state.copyWith(skills: skills);
+    state = state.copyWithFormFields(skills: skills);
   }
 
   void setRoleOverview(String? value) {
-    state = state.copyWith(roleOverview: value);
+    state = state.copyWithFormFields(roleOverview: value);
   }
 
   void setLanguages(List<String> languages) {
-    state = state.copyWith(languages: languages);
+    state = state.copyWithFormFields(languages: languages);
   }
 
   void setKeyResponsibilities(List<String> responsibilities) {
-    state = state.copyWith(keyResponsibilities: responsibilities);
+    state = state.copyWithFormFields(keyResponsibilities: responsibilities);
   }
 
   void setBenefits(List<String> benefits) {
-    state = state.copyWith(benefits: benefits);
+    state = state.copyWithFormFields(benefits: benefits);
   }
 
   void setCountry(String? value) {
-    state = state.copyWith(country: value);
+    state = state.copyWithFormFields(country: value);
   }
 
   void setStateProvince(String? value) {
-    state = state.copyWith(stateProvince: value);
+    state = state.copyWithFormFields(stateProvince: value);
   }
 
   void setCity(String? value) {
-    state = state.copyWith(city: value);
+    state = state.copyWithFormFields(city: value);
   }
 
   void setSalaryRange(double min, double max) {
-    state = state.copyWith(minSalary: min, maxSalary: max);
+    state = state.copyWithFormFields(minSalary: min, maxSalary: max);
   }
 
   void setCurrentStep(int step) {
