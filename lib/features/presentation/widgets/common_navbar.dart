@@ -50,7 +50,9 @@ class CommonNavbar extends ConsumerWidget {
                         final currentLocation = GoRouterState.of(
                           context,
                         ).uri.toString();
-                        if (!currentLocation.contains(RouterConsts.dashboardPath)) {
+                        if (!currentLocation.contains(
+                          RouterConsts.dashboardPath,
+                        )) {
                           context.go(RouterConsts.dashboardPath);
                         }
                       }
@@ -67,19 +69,18 @@ class CommonNavbar extends ConsumerWidget {
               const SizedBox(width: 20),
               _NavIconButton(
                 label: 'Jobs',
-                onPressed: 
-                isVerified
-                    ? 
-                    () {
+                onPressed: isVerified
+                    ? () {
                         final currentLocation = GoRouterState.of(
                           context,
                         ).uri.toString();
-                        if (!currentLocation.contains(RouterConsts.manageJobsPath)) {
-                          context.go(RouterConsts.manageJobsPath);
+                        if (!currentLocation.contains(
+                          RouterConsts.viewJobPath,
+                        )) {
+                          context.go(RouterConsts.viewJobPath);
                         }
                       }
-                    :
-                     () {
+                    : () {
                         context.showErrorSnackbar(
                           'Please verify your account to access jobs',
                         );
@@ -87,7 +88,7 @@ class CommonNavbar extends ConsumerWidget {
                 showBadge: true,
                 isActive: GoRouterState.of(
                   context,
-                ).uri.toString().contains(RouterConsts.manageJobsPath),
+                ).uri.toString().contains(RouterConsts.viewJobPath),
                 isDisabled: !isVerified,
               ),
               const SizedBox(width: 20),
@@ -186,9 +187,7 @@ class _NavIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isDisabled
-        ? context.themeIconGrey
-        :  context.themeDark ;
+    final textColor = isDisabled ? context.themeIconGrey : context.themeDark;
 
     return InkWell(
       onTap: isDisabled ? null : onPressed,
@@ -247,10 +246,10 @@ class _NotificationIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive = GoRouterState.of(context).uri.toString().contains(
-          RouterConsts.notificationsPath,
-        );
-    final hasUnreadNotifications = true; 
+    final isActive = GoRouterState.of(
+      context,
+    ).uri.toString().contains(RouterConsts.notificationsPath);
+    final hasUnreadNotifications = true;
 
     return InkWell(
       onTap: () {

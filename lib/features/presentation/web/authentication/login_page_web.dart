@@ -79,21 +79,17 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
 
     try {
       log('Attempting login with email: $email');
-            await authController.login(
-        email: email,
-        password: password,
-      );
+      await authController.login(email: email, password: password);
       log('Login successful - no exception thrown');
-            _showSuccess('Login successful!');
-      
+      _showSuccess('Login successful!');
     } catch (e) {
       log('Login exception caught: $e');
-            String errorMessage = e.toString();
-      
+      String errorMessage = e.toString();
+
       if (errorMessage.startsWith('Exception: ')) {
         errorMessage = errorMessage.substring(11);
       }
-      
+
       log('Displaying error: $errorMessage');
       _showError(errorMessage);
     } finally {
@@ -112,7 +108,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
     final authState = ref.watch(authControllerProvider);
     final size = MediaQuery.of(context).size;
     final isLargeScreen = size.width > 1100;
-    
+
     if (!authState.isCheckingAuth && authState.isAuthenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -120,7 +116,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
         }
       });
     }
-    
+
     if (authState.isCheckingAuth) {
       return Scaffold(
         backgroundColor: ColorConsts.white,
@@ -282,7 +278,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
                         showShadow: true,
                         showBorder: false,
                         offset: 4,
-                        onPressed: _isLoggingIn ? (){} : _handleLogin,
+                        onPressed: _isLoggingIn ? () {} : _handleLogin,
                       ),
                       const SizedBox(height: 48),
                       Row(
@@ -294,7 +290,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              context.go(RouterConsts.signupPagePath);
+                              context.go(RouterConsts.signupPath);
                             },
                             child: CustomText(
                               text: 'Register',

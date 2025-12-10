@@ -17,7 +17,9 @@ class CommonTextfieldWidget extends StatelessWidget {
   final double? borderRadius;
   final Color? fillColor;
   final Color? hintColor;
-    final double? hintSize;
+  final double? hintFontSize; // <-- Added
+  final double? labelFontSize; // <-- Added
+  final double? hintSize;
 
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
@@ -49,6 +51,8 @@ class CommonTextfieldWidget extends StatelessWidget {
     this.borderRadius,
     this.fillColor,
     this.hintColor,
+    this.hintFontSize, // <-- Added
+    this.labelFontSize, // <-- Added
     this.hintSize,
     this.onChanged,
     this.onFieldSubmitted,
@@ -104,7 +108,10 @@ class CommonTextfieldWidget extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: GoogleFonts.inter(fontSize: 12,color: isDark ? context.themeWhite : context.themeDark),
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          color: isDark ? context.themeWhite : context.themeDark,
+        ),
         onChanged: onChanged,
         onFieldSubmitted: onFieldSubmitted,
         onTap: onTap,
@@ -116,45 +123,41 @@ class CommonTextfieldWidget extends StatelessWidget {
         textInputAction: textInputAction,
         focusNode: focusNode,
         onSaved: onSaved,
-      
+
         decoration: InputDecoration(
-       
           hintText: hintText,
           labelText: labelText,
-          labelStyle: useFloatingLabel
-              ? GoogleFonts.inter(
-                  color: hintColor ?? context.themeIconGrey,
-                  fontSize: 16,
-                )
-              : GoogleFonts.inter(
-                  color: hintColor ?? context.themeIconGrey,
-                  fontSize: 16,
-                ),
+
+          // *** UPDATED LABEL STYLE ***
+          labelStyle: GoogleFonts.inter(
+            color: hintColor ?? context.themeIconGrey,
+            fontSize: labelFontSize ?? 16,
+          ),
+
+          // *** UPDATED FLOATING LABEL STYLE ***
           floatingLabelStyle: useFloatingLabel
               ? GoogleFonts.inter(
                   color: hintColor ?? context.themeIconGrey,
-                  fontSize: 16,
+                  fontSize: labelFontSize ?? 16,
                   fontWeight: FontWeight.w400,
                 )
               : null,
+
+          // *** UPDATED HINT STYLE ***
           hintStyle: GoogleFonts.inter(
             color: hintColor ?? context.themeIconGrey,
-            fontSize: hintSize??12
+            fontSize: hintSize ?? 12,
           ),
+
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
           suffixIconConstraints: suffixIcon != null
-              ? const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
-                )
+              ? const BoxConstraints(minWidth: 32, minHeight: 32)
               : null,
           floatingLabelBehavior: useFloatingLabel
               ? FloatingLabelBehavior.auto
               : FloatingLabelBehavior.never,
-          floatingLabelAlignment: useFloatingLabel
-              ? FloatingLabelAlignment.start
-              : FloatingLabelAlignment.start,
+
           border: useFloatingLabel
               ? UnderlineInputBorder(
                   borderSide: BorderSide(color: borderClr, width: 1),
@@ -165,6 +168,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                       ? BorderSide(color: borderClr)
                       : BorderSide.none,
                 ),
+
           enabledBorder: useFloatingLabel
               ? UnderlineInputBorder(
                   borderSide: BorderSide(
@@ -181,6 +185,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                         borderRadius: radius,
                         borderSide: BorderSide.none,
                       )),
+
           focusedBorder: useFloatingLabel
               ? UnderlineInputBorder(
                   borderSide: BorderSide(color: borderClr, width: 2),
@@ -192,6 +197,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                     width: useBorderOnly ? 1.5 : 0,
                   ),
                 ),
+
           filled: true,
           fillColor: fillColor ?? context.themeWhite,
           contentPadding: useFloatingLabel
@@ -203,7 +209,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                 )
               : EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: (height ?? 50) / 2 - 12, 
+                  vertical: (height ?? 50) / 2 - 12,
                 ),
         ),
         validator: buildValidator(),

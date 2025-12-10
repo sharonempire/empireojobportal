@@ -38,7 +38,11 @@ class SnackbarService {
     );
   }
 
-  void showSuccess(BuildContext? context, String message, {Duration? duration}) {
+  void showSuccess(
+    BuildContext? context,
+    String message, {
+    Duration? duration,
+  }) {
     final messenger = _resolveMessenger(context);
     if (messenger == null) {
       debugPrint(
@@ -74,7 +78,11 @@ class SnackbarService {
     );
   }
 
-  void showWarning(BuildContext? context, String message, {Duration? duration}) {
+  void showWarning(
+    BuildContext? context,
+    String message, {
+    Duration? duration,
+  }) {
     final messenger = _resolveMessenger(context);
     if (messenger == null) {
       debugPrint(
@@ -170,7 +178,7 @@ class SnackbarService {
       final parts = error.split(':');
       if (parts.length > 1) {
         final meaningfulPart = parts.last.trim();
-        if (meaningfulPart.length < 100 && 
+        if (meaningfulPart.length < 100 &&
             !meaningfulPart.contains('stacktrace') &&
             !meaningfulPart.contains('at ')) {
           return meaningfulPart;
@@ -189,14 +197,14 @@ class SnackbarService {
     }
 
     // If error is a clean, user-friendly message, return it as-is
-    if (error.length < 150 && 
+    if (error.length < 150 &&
         !errorLower.contains('stacktrace') &&
         !errorLower.contains('at ') &&
         !errorLower.contains('exception:') &&
         !errorLower.contains('error:')) {
       return error;
     }
-    
+
     // Last resort: return generic message
     return 'An error occurred. Please try again.';
   }
@@ -235,7 +243,7 @@ class NetworkService {
 
       return response != null;
     } on PostgrestException catch (e) {
-      if (e.code == 'PGRST116') return false; 
+      if (e.code == 'PGRST116') return false;
       throw parseError(e.message, 'Failed to check row');
     } catch (e) {
       throw 'Failed to check row: ${e.toString()}';
@@ -253,9 +261,9 @@ class NetworkService {
           .eq('email', email)
           .maybeSingle();
 
-      return response != null; 
+      return response != null;
     } on PostgrestException catch (e) {
-      if (e.code == 'PGRST116') return false; 
+      if (e.code == 'PGRST116') return false;
       throw parseError(e.message, 'Failed to check row');
     } catch (e) {
       throw 'Failed to check row: ${e.toString()}';
@@ -601,8 +609,6 @@ class NetworkService {
   bool get isAuthenticated {
     return supabase.auth.currentUser != null;
   }
-
-
 
   GoTrueClient get auth => supabase.auth;
 }

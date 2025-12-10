@@ -65,3 +65,4 @@ class RouteModel {
     return remainder.replaceFirst(RegExp(r'^/+'), '');
   }
 }
+

@@ -31,9 +31,9 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
 
   void _loadDataIfNeeded(WidgetRef ref) {
     final authState = ref.read(authControllerProvider);
-    if (!authState.isCheckingAuth && 
-        authState.isAuthenticated && 
-        authState.userId != null && 
+    if (!authState.isCheckingAuth &&
+        authState.isAuthenticated &&
+        authState.userId != null &&
         !_hasLoadedData) {
       _hasLoadedData = true;
       ref.read(jobProvider.notifier).loadJobs();
@@ -45,11 +45,11 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final jobState = ref.watch(jobProvider);
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDataIfNeeded(ref);
     });
-    
+
     // if ( (jobState.isLoadingJobs && jobState.jobs.isEmpty)) {
     //   return Scaffold(
     //     backgroundColor: context.themeScaffoldCourse,
@@ -67,7 +67,7 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
     //     ),
     //   );
     // }
-    
+
     if (!authState.isVerified && authState.isAuthenticated) {
       return Scaffold(
         backgroundColor: context.themeScaffoldCourse,
@@ -139,7 +139,7 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
 
   Widget _buildDashboard(BuildContext context, WidgetRef ref) {
     final jobState = ref.watch(jobProvider);
-    
+
     final totalJobs = jobState.jobs.length;
     final activeJobs = jobState.jobs.where((job) {
       final status = job.status.toLowerCase();
@@ -148,9 +148,9 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
     final closedJobs = jobState.jobs.where((job) {
       return job.status.toLowerCase() == 'closed';
     }).length;
-    
+
     final latestJobs = jobState.jobs.take(10).toList();
-    
+
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
       body: Column(
@@ -174,7 +174,8 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              text: 'Create a Job That Attracts the Right Talent',
+                              text:
+                                  'Create a Job That Attracts the Right Talent',
                               fontSize: 26,
                               fontWeight: FontWeight.w600,
                             ),
@@ -192,11 +193,13 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                               alignment: Alignment.centerRight,
                               child: Consumer(
                                 builder: (context, ref, _) {
-                                  final authState = ref.watch(authControllerProvider);
+                                  final authState = ref.watch(
+                                    authControllerProvider,
+                                  );
                                   return TextButton.icon(
                                     onPressed: authState.isVerified
                                         ? () {
-                                            context.go(RouterConsts.createJobPath);
+                                            context.go(RouterConsts.addJobPath);
                                           }
                                         : () {
                                             context.showErrorSnackbar(
@@ -267,7 +270,10 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                         children: [
                           Expanded(flex: 3, child: RecentApplicationsTable()),
                           const SizedBox(width: 24),
-                          Expanded(flex: 2, child: JobPostingStatus(jobs: latestJobs)),
+                          Expanded(
+                            flex: 2,
+                            child: JobPostingStatus(jobs: latestJobs),
+                          ),
                         ],
                       ),
                     ],
