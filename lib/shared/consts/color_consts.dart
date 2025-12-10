@@ -37,6 +37,9 @@ class ColorConsts {
   static const Color darkGrey = Color(0xFF6B6B6B);
   static const Color darkGreyLight = Color(0xFF3A3A3A);
   static const Color darkDivider = Color(0xFF404040);
+  static const Color jobpostingColor1 = Color(0xFF513D3D);
+  static const Color jobpostingColor2 = Color(0xFF3D514B);
+  static const Color jobpostingColor3 = Color(0xFF51503D);
 }
 
 extension ColorConstsTheme on BuildContext {

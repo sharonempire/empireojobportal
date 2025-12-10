@@ -2,6 +2,8 @@ import 'package:empire_job/features/presentation/widgets/common_textfield_widget
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
+import 'package:empire_job/shared/consts/images.dart';
+import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,7 +37,8 @@ class _LoginPageAppState extends State<LoginPageApp> {
 
   void _onLogin() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Handle login
+      // Navigate to dashboard after successful login
+      context.goNamed('dashboard');
     }
   }
 
@@ -54,44 +57,48 @@ class _LoginPageAppState extends State<LoginPageApp> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.rSpacing(24),
+              vertical: context.rSpacing(32),
+            ),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Title
-                  const CustomText(
+                  CustomText(
                     text: 'Welcome Back !',
-                    fontSize: 28,
+                    fontSize: context.rFontSize(20),
                     fontWeight: FontWeight.bold,
                     color: ColorConsts.black,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: context.rSpacing(12)),
 
                   // Subtitle
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.rSpacing(16),
+                    ),
                     child: CustomText(
                       text:
                           'Access your HR dashboard and continue managing jobs and applicants.',
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                      color: ColorConsts.textColor,
+                      fontSize: context.rFontSize(14),
+                      fontWeight: FontWeight.w500,
+                      color: ColorConsts.textColorBlack,
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(height: 32),
 
                   // Illustration
                   Container(
-                    height: 180,
-                    width: 180,
+                    height: context.rImageSize(258),
+                    width: context.rImageSize(220),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Image.network(
-                      'https://cdn3d.iconscout.com/3d/premium/thumb/businessman-celebrating-success-3d-illustration-download-in-png-blend-fbx-gltf-file-formats--happy-victory-business-activity-pack-illustrations-4627261.png',
+                    child: Image.asset(
+                      ImageConsts.imgSignup,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
@@ -99,76 +106,63 @@ class _LoginPageAppState extends State<LoginPageApp> {
                             color: ColorConsts.lightGrey2,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.person_outline,
-                            size: 80,
-                            color: ColorConsts.iconGrey,
-                          ),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                : null,
-                            strokeWidth: 2,
+                            size: context.rIconSize(80),
                             color: ColorConsts.iconGrey,
                           ),
                         );
                       },
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: context.rSpacing(22)),
 
                   // Email Field
                   _buildFieldLabel('Email Address'),
-                  const SizedBox(height: 8),
+                  SizedBox(height: context.rSpacing(1)),
                   CommonTextfieldWidget(
                     controller: _emailController,
                     hintText: 'Enter the email associated with your account.',
                     keyboardType: TextInputType.emailAddress,
+                    hintColor: ColorConsts.textColorBlack,
                     useFloatingLabel: true,
                     requiredField: true,
-                    height: 56,
+                    height: context.rHeight(56),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: context.rSpacing(24)),
 
                   // Password Field
                   _buildFieldLabel('Password'),
-                  const SizedBox(height: 8),
+                  SizedBox(height: context.rSpacing(8)),
                   CommonTextfieldWidget(
                     controller: _passwordController,
                     hintText: 'Enter your secure password.',
                     obscureText: _obscurePassword,
                     useFloatingLabel: true,
+                    hintColor: ColorConsts.textColorBlack,
                     requiredField: true,
-                    height: 56,
+                    height: context.rHeight(56),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         color: ColorConsts.iconGrey,
-                        size: 20,
+                        size: context.rIconSize(20),
                       ),
                       onPressed: _togglePasswordVisibility,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: context.rSpacing(16)),
 
-                  // Remember Me & Forgot Password Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Remember Me Checkbox
                       Row(
                         children: [
                           SizedBox(
-                            height: 24,
-                            width: 24,
+                            height: context.rSpacing(24),
+                            width: context.rSpacing(24),
                             child: Checkbox(
                               value: _rememberMe,
                               onChanged: (value) {
@@ -186,57 +180,55 @@ class _LoginPageAppState extends State<LoginPageApp> {
                               activeColor: ColorConsts.black,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          const CustomText(
+                          SizedBox(width: context.rSpacing(8)),
+                          CustomText(
                             text: 'Remember me',
-                            fontSize: 13,
+                            fontSize: context.rFontSize(10),
                             color: ColorConsts.textColor,
                           ),
                         ],
                       ),
 
-                      // Forgot Password Link
                       GestureDetector(
                         onTap: _onForgotPassword,
-                        child: const CustomText(
+                        child: CustomText(
                           text: 'Forgot Password',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                          fontSize: context.rFontSize(10),
                           color: ColorConsts.textColorRed,
                           decoration: TextDecoration.underline,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: context.rSpacing(32)),
 
                   // Login Button
                   PrimaryButtonWidget(
                     text: 'Login',
                     onPressed: _onLogin,
-                    backgroundColor: ColorConsts.black,
-                    textColor: ColorConsts.white,
+                    backgroundColor: ColorConsts.white,
+                    textColor: ColorConsts.black,
                     showBorder: false,
-                    showShadow: false,
-                    height: 52,
+                    showShadow: true,
+                    height: context.rHeight(42),
                     borderRadius: 26,
+                    fontSize: context.rFontSize(14),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: context.rSpacing(52)),
 
-                  // Register Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const CustomText(
+                      CustomText(
                         text: "Don't have an account ? ",
-                        fontSize: 14,
+                        fontSize: context.rFontSize(12),
                         color: ColorConsts.textColor,
                       ),
                       GestureDetector(
                         onTap: _navigateToRegister,
-                        child: const CustomText(
+                        child: CustomText(
                           text: 'Register',
-                          fontSize: 14,
+                          fontSize: context.rFontSize(12),
                           fontWeight: FontWeight.w600,
                           color: ColorConsts.textColorRed,
                         ),
@@ -257,7 +249,7 @@ class _LoginPageAppState extends State<LoginPageApp> {
       alignment: Alignment.centerLeft,
       child: CustomText(
         text: label,
-        fontSize: 14,
+        fontSize: context.rFontSize(14),
         fontWeight: FontWeight.w500,
         color: ColorConsts.black,
       ),

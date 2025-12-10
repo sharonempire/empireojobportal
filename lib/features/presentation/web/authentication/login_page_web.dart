@@ -36,6 +36,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
 
   void _handleForgotPassword() {
     // Navigate to forgot password page
+
     print('Navigate to forgot password');
   }
 
@@ -115,34 +116,33 @@ class _LoginPageWebState extends State<LoginPageWeb> {
           ),
           const SizedBox(height: 12),
           CustomText(
-            text: 'Access your HR dashboard and continue managing\njobs and applicants.',
+            text:
+                'Access your HR dashboard and continue managing\njobs and applicants.',
             fontSize: 14,
             fontWeight: FontWeight.normal,
             maxLines: 2,
           ),
           const SizedBox(height: 40),
-                    CustomText(
+          CustomText(
             text: 'Email Address',
             fontSize: 14,
             fontWeight: FontWeight.w500,
-
           ),
           const SizedBox(height: 8),
-      CommonTextfieldWidget(
-              height: 48,
-              controller: _emailController,
-              fillColor: context.themeDark,
-              hintText: 'Email Address',
-              requiredField: true,
-              keyboardType: TextInputType.emailAddress,
-              useFloatingLabel: true,
-              borderColor: context.themeIconGrey,
-              borderRadius: 8,
-              onChanged: (value) {
-              },
-            ),
+          CommonTextfieldWidget(
+            height: 48,
+            controller: _emailController,
+            fillColor: context.themeDark,
+            hintText: 'Email Address',
+            requiredField: true,
+            keyboardType: TextInputType.emailAddress,
+            useFloatingLabel: true,
+            borderColor: context.themeIconGrey,
+            borderRadius: 8,
+            onChanged: (value) {},
+          ),
           const SizedBox(height: 24),
-          
+
           // Password Field
           CustomText(
             text: 'Password',
@@ -151,7 +151,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
           ),
           const SizedBox(height: 8),
           CommonTextfieldWidget(
-                          fillColor: context.themeDark,
+            fillColor: context.themeDark,
 
             controller: _passwordController,
             hintText: 'Enter your secure password.',
@@ -161,10 +161,9 @@ class _LoginPageWebState extends State<LoginPageWeb> {
             borderRadius: 12,
             height: 50,
             useFloatingLabel: true,
-     
           ),
           const SizedBox(height: 16),
-          
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -204,7 +203,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
             ],
           ),
           const SizedBox(height: 32),
-          
+
           // Login Button
           PrimaryButtonWidget(
             text: 'Login',
@@ -217,7 +216,7 @@ class _LoginPageWebState extends State<LoginPageWeb> {
             fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 20),
-          
+
           // Register Link
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -245,9 +244,6 @@ class _LoginPageWebState extends State<LoginPageWeb> {
   }
 
   Widget _buildImage() {
-    return Image.asset(
-      ImageConsts.imgLogin, 
-      fit: BoxFit.contain,
-    );
+    return Image.asset(ImageConsts.imgLogin, fit: BoxFit.contain);
   }
 }

@@ -17,6 +17,8 @@ class CommonTextfieldWidget extends StatelessWidget {
   final double? borderRadius;
   final Color? fillColor;
   final Color? hintColor;
+  final double? hintFontSize; // <-- Added
+  final double? labelFontSize; // <-- Added
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
   final bool useFloatingLabel;
@@ -47,6 +49,8 @@ class CommonTextfieldWidget extends StatelessWidget {
     this.borderRadius,
     this.fillColor,
     this.hintColor,
+    this.hintFontSize, // <-- Added
+    this.labelFontSize, // <-- Added
     this.onChanged,
     this.onFieldSubmitted,
     this.useFloatingLabel = false,
@@ -74,7 +78,8 @@ class CommonTextfieldWidget extends StatelessWidget {
       if (validator != null) {
         return validator;
       } else if (requiredField) {
-        return (value) => (value == null || value.trim().isEmpty) ? 'Required' : null;
+        return (value) =>
+            (value == null || value.trim().isEmpty) ? 'Required' : null;
       }
       return null;
     }
@@ -115,33 +120,35 @@ class CommonTextfieldWidget extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           labelText: labelText,
-          labelStyle: useFloatingLabel
-              ? GoogleFonts.inter(
-                  color: hintColor ?? context.themeIconGrey,
-                  fontSize: 16,
-                )
-              : GoogleFonts.inter(
-                  color: hintColor ?? context.themeIconGrey,
-                  fontSize: 16,
-                ),
+
+          // *** UPDATED LABEL STYLE ***
+          labelStyle: GoogleFonts.inter(
+            color: hintColor ?? context.themeIconGrey,
+            fontSize: labelFontSize ?? 16,
+          ),
+
+          // *** UPDATED FLOATING LABEL STYLE ***
           floatingLabelStyle: useFloatingLabel
               ? GoogleFonts.inter(
                   color: hintColor ?? context.themeIconGrey,
-                  fontSize: 16,
+                  fontSize: labelFontSize ?? 16,
                   fontWeight: FontWeight.w400,
                 )
               : null,
+
+          // *** UPDATED HINT STYLE ***
           hintStyle: GoogleFonts.inter(
             color: hintColor ?? context.themeIconGrey,
+            fontSize: hintFontSize ?? 14,
           ),
+
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
+
           floatingLabelBehavior: useFloatingLabel
               ? FloatingLabelBehavior.auto
               : FloatingLabelBehavior.never,
-          floatingLabelAlignment: useFloatingLabel
-              ? FloatingLabelAlignment.start
-              : FloatingLabelAlignment.start,
+
           border: useFloatingLabel
               ? UnderlineInputBorder(
                   borderSide: BorderSide(color: borderClr, width: 1),
@@ -152,6 +159,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                       ? BorderSide(color: borderClr)
                       : BorderSide.none,
                 ),
+
           enabledBorder: useFloatingLabel
               ? UnderlineInputBorder(
                   borderSide: BorderSide(
@@ -168,6 +176,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                         borderRadius: radius,
                         borderSide: BorderSide.none,
                       )),
+
           focusedBorder: useFloatingLabel
               ? UnderlineInputBorder(
                   borderSide: BorderSide(color: borderClr, width: 2),
@@ -179,6 +188,7 @@ class CommonTextfieldWidget extends StatelessWidget {
                     width: useBorderOnly ? 1.5 : 0,
                   ),
                 ),
+
           filled: true,
           fillColor: fillColor ?? context.themeWhite,
           contentPadding: useFloatingLabel

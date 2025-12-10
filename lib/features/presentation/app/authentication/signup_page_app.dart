@@ -2,6 +2,7 @@ import 'package:empire_job/features/presentation/widgets/common_textfield_widget
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
+import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,7 +46,8 @@ class _SignupPageAppState extends State<SignupPageApp> {
 
   void _onCreateAccount() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Handle account creation
+      // Navigate to dashboard after successful signup
+      context.goNamed('dashboard');
     }
   }
 
@@ -60,101 +62,109 @@ class _SignupPageAppState extends State<SignupPageApp> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: EdgeInsets.symmetric(
+              horizontal: context.rSpacing(24),
+              vertical: context.rSpacing(32),
+            ),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Title
-                  const CustomText(
+                  CustomText(
                     text: 'Create Your Account',
-                    fontSize: 28,
+                    fontSize: context.rFontSize(20),
                     fontWeight: FontWeight.bold,
                     color: ColorConsts.black,
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: context.rSpacing(12)),
 
                   // Subtitle
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: context.rSpacing(16),
+                    ),
                     child: CustomText(
                       text:
                           'Build your company profile and start posting jobs and managing applicants instantly.',
-                      fontSize: 14,
+                      fontSize: context.rFontSize(14),
                       fontWeight: FontWeight.normal,
-                      color: ColorConsts.textColor,
+                      color: ColorConsts.black,
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: context.rSpacing(40)),
 
                   // Company Name Field
                   _buildFieldLabel('Company Name'),
-                  const SizedBox(height: 8),
+
                   CommonTextfieldWidget(
                     controller: _companyNameController,
-                    hintText: "Enter your company's official name.",
+                    hintText: "Enter your name",
+                    hintColor: ColorConsts.textColorBlack,
                     useFloatingLabel: true,
                     requiredField: true,
-                    height: 56,
+                    height: context.rHeight(46),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: context.rSpacing(24)),
 
                   // Email Field
                   _buildFieldLabel('Email Address'),
-                  const SizedBox(height: 8),
+
                   CommonTextfieldWidget(
                     controller: _emailController,
-                    hintText: "Enter your company's official email address.",
+                    hintText: "Enter your company's official email address",
                     keyboardType: TextInputType.emailAddress,
                     useFloatingLabel: true,
                     requiredField: true,
-                    height: 56,
+                    height: context.rHeight(46),
+                    hintColor: ColorConsts.textColorBlack,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: context.rSpacing(24)),
 
                   // Password Field
                   _buildFieldLabel('Password'),
-                  const SizedBox(height: 8),
+
                   CommonTextfieldWidget(
                     controller: _passwordController,
-                    hintText:
-                        'Create a strong password to secure your HR portal.',
+                    hintText: 'Create a strong password',
                     obscureText: _obscurePassword,
                     useFloatingLabel: true,
                     requiredField: true,
-                    height: 56,
+                    hintColor: ColorConsts.textColorBlack,
+                    height: context.rHeight(46),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         color: ColorConsts.iconGrey,
-                        size: 20,
+                        size: context.rIconSize(16),
                       ),
                       onPressed: _togglePasswordVisibility,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: context.rSpacing(24)),
 
                   // Confirm Password Field
                   _buildFieldLabel('Confirm Password'),
-                  const SizedBox(height: 8),
+
                   CommonTextfieldWidget(
                     controller: _confirmPasswordController,
-                    hintText: 'Re-enter the password for verification.',
+                    hintText: 'Re-enter the password',
                     obscureText: _obscureConfirmPassword,
                     useFloatingLabel: true,
                     requiredField: true,
-                    height: 56,
+                    hintColor: ColorConsts.textColorBlack,
+                    height: context.rHeight(46),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         color: ColorConsts.iconGrey,
-                        size: 20,
+                        size: context.rIconSize(16),
                       ),
                       onPressed: _toggleConfirmPasswordVisibility,
                     ),
@@ -168,35 +178,37 @@ class _SignupPageAppState extends State<SignupPageApp> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: context.rSpacing(40)),
 
                   // Create Account Button
                   PrimaryButtonWidget(
                     text: 'Create Account',
                     onPressed: _onCreateAccount,
-                    backgroundColor: ColorConsts.black,
-                    textColor: ColorConsts.white,
+                    backgroundColor: ColorConsts.white,
+                    textColor: ColorConsts.black,
                     showBorder: false,
-                    showShadow: false,
-                    height: 52,
+                    showShadow: true,
+                    fontSize: context.rFontSize(14),
+                    height: context.rHeight(52),
                     borderRadius: 26,
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: context.rSpacing(32)),
+                  SizedBox(height: context.rSpacing(32)),
 
                   // Login Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const CustomText(
+                      CustomText(
                         text: 'Already have an account ? ',
-                        fontSize: 14,
-                        color: ColorConsts.textColor,
+                        fontSize: context.rFontSize(12),
+                        color: ColorConsts.textColorBlack,
                       ),
                       GestureDetector(
                         onTap: _navigateToLogin,
-                        child: const CustomText(
+                        child: CustomText(
                           text: 'Login',
-                          fontSize: 14,
+                          fontSize: context.rFontSize(12),
                           fontWeight: FontWeight.w600,
                           color: ColorConsts.textColorRed,
                         ),
@@ -217,7 +229,7 @@ class _SignupPageAppState extends State<SignupPageApp> {
       alignment: Alignment.centerLeft,
       child: CustomText(
         text: label,
-        fontSize: 14,
+        fontSize: context.rFontSize(14),
         fontWeight: FontWeight.w500,
         color: ColorConsts.black,
       ),
