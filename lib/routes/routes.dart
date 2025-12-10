@@ -3,28 +3,39 @@ import 'package:empire_job/routes/router_consts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+final routerAuthProvider = StreamProvider<bool>((ref) {
+  return Stream.value(ref.watch(authControllerProvider.select((state) => state.isAuthenticated)));
+});
+
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authControllerProvider);
-  
   return GoRouter(
     initialLocation: RouterConsts.loginPath, 
     routes: RouterConsts.routes,
     redirect: (context, state) {
+      final authState = ref.read(authControllerProvider);
+      
       if (authState.isCheckingAuth) {
+        return null;
+      }
+      
+      if (authState.isLoading) {
         return null;
       }
       
       final isAuthenticated = authState.isAuthenticated;
       final isLoginPage = state.matchedLocation == RouterConsts.loginPath;
       final isSignupPage = state.matchedLocation == RouterConsts.signupPagePath;
-            if (isAuthenticated && (isLoginPage || isSignupPage)) {
+            
+      if (isAuthenticated && isLoginPage) {
         return RouterConsts.dashboardPath;
       }
-            if (!isAuthenticated && !isLoginPage && !isSignupPage) {
+      
+      if (!isAuthenticated && !isLoginPage && !isSignupPage) {
         return RouterConsts.loginPath;
       }
       
-      return null; 
+      return null;
     },
+    debugLogDiagnostics: true, 
   );
 });

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' show ClientException;
@@ -103,8 +102,13 @@ class SnackbarService {
     }
     if (errorLower.contains('email already registered') ||
         errorLower.contains('user already registered') ||
+        errorLower.contains('already registered') ||
         errorLower.contains('duplicate key') ||
         errorLower.contains('email already exists')) {
+      // Return the original message if it's already user-friendly, otherwise return a generic one
+      if (error.contains('already registered') && error.length < 100) {
+        return error;
+      }
       return 'This email is already registered. Please use a different email or try logging in.';
     }
     if (errorLower.contains('weak password') ||
@@ -184,13 +188,16 @@ class SnackbarService {
       return 'Something went wrong. Please try again later.';
     }
 
+    // If error is a clean, user-friendly message, return it as-is
     if (error.length < 150 && 
-        !errorLower.contains('error') &&
-        !errorLower.contains('exception') &&
-        !errorLower.contains('failed') &&
-        !errorLower.contains('null')) {
+        !errorLower.contains('stacktrace') &&
+        !errorLower.contains('at ') &&
+        !errorLower.contains('exception:') &&
+        !errorLower.contains('error:')) {
       return error;
     }
+    
+    // Last resort: return generic message
     return 'An error occurred. Please try again.';
   }
 
