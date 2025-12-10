@@ -153,6 +153,8 @@ class _MultiSelectDropdownWidgetState extends State<MultiSelectDropdownWidget> {
       }
     });
     
+    _overlayEntry?.markNeedsBuild();
+    
     widget.onChanged(selectedValues);
   }
 
@@ -160,6 +162,9 @@ class _MultiSelectDropdownWidgetState extends State<MultiSelectDropdownWidget> {
     _safeSetState(() {
       selectedValues.remove(item);
     });
+    
+    _overlayEntry?.markNeedsBuild();
+    
     widget.onChanged(selectedValues);
   }
 
