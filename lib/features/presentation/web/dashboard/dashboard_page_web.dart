@@ -25,11 +25,12 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
   @override
   void initState() {
     super.initState();
-     WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(jobProvider.notifier).loadJobs();
       ref.read(settingsProvider.notifier).loadCompanyData();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
@@ -104,7 +105,7 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
 
   Widget _buildDashboard(BuildContext context, WidgetRef ref) {
     final jobState = ref.watch(jobProvider);
-    
+
     final totalJobs = jobState.jobs.length;
     final activeJobs = jobState.jobs.where((job) {
       final status = job.status.toLowerCase();
@@ -113,7 +114,7 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
     final closedJobs = jobState.jobs.where((job) {
       return job.status.toLowerCase() == 'closed';
     }).length;
-    
+
     final latestJobs = jobState.jobs.take(10).toList();
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
@@ -138,7 +139,8 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             CustomText(
-                              text: 'Create a Job That Attracts the Right Talent',
+                              text:
+                                  'Create a Job That Attracts the Right Talent',
                               fontSize: 26,
                               fontWeight: FontWeight.w600,
                             ),
@@ -156,22 +158,20 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                               alignment: Alignment.centerRight,
                               child: Consumer(
                                 builder: (context, ref, _) {
-                                  final authState = ref.watch(authControllerProvider);
+                                  final authState = ref.watch(
+                                    authControllerProvider,
+                                  );
                                   return TextButton.icon(
-                                    onPressed: 
-                                    authState.isVerified
-                                        ?
-                                         () {
-                                            context.go(RouterConsts.createJobPath);
+                                    onPressed: authState.isVerified
+                                        ? () {
+                                            context.go(RouterConsts.addJobPath);
                                           }
-                                        : 
-                                        () {
+                                        : () {
                                             context.showErrorSnackbar(
                                               'Please verify your account to create jobs',
                                             );
                                           },
-                                        
-                                    
+
                                     icon: Icon(
                                       Icons.add,
                                       size: 18,
@@ -236,7 +236,10 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                         children: [
                           Expanded(flex: 3, child: RecentApplicationsTable()),
                           const SizedBox(width: 24),
-                          Expanded(flex: 2, child: JobPostingStatus(jobs: latestJobs)),
+                          Expanded(
+                            flex: 2,
+                            child: JobPostingStatus(jobs: latestJobs),
+                          ),
                         ],
                       ),
                     ],

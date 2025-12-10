@@ -1,26 +1,28 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class SettingsPageApp extends StatefulWidget {
+class SettingsPageApp extends ConsumerStatefulWidget {
   const SettingsPageApp({super.key});
 
   @override
-  State<SettingsPageApp> createState() => _SettingsPageAppState();
+  ConsumerState<SettingsPageApp> createState() => _SettingsPageAppState();
 }
 
-class _SettingsPageAppState extends State<SettingsPageApp> {
+class _SettingsPageAppState extends ConsumerState<SettingsPageApp> {
   void _onNavTap(int index) {
     switch (index) {
       case 0:
         context.goNamed('dashboard');
         break;
       case 1:
-        context.goNamed('addJob');
+        context.goNamed('viewJob');
         break;
       case 2:
         // Already on settings
@@ -28,8 +30,52 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
     }
   }
 
+  Future<void> _handleLogout() async {
+    // Show confirmation dialog
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Logout',
+              style: TextStyle(color: ColorConsts.textColorRed),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      try {
+        await ref.read(authControllerProvider.notifier).logout();
+        if (mounted) {
+          context.goNamed('login');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: ColorConsts.textColorRed,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+
     return Scaffold(
       backgroundColor: ColorConsts.white,
       appBar: CommonAppBar(
@@ -44,7 +90,7 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Company Name Card
-              _buildCompanyCard(),
+              _buildCompanyCard(authState),
               SizedBox(height: context.rSpacing(24)),
               // Account Section
               _buildAccountSection(),
@@ -62,7 +108,7 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
     );
   }
 
-  Widget _buildCompanyCard() {
+  Widget _buildCompanyCard(authState) {
     return Container(
       padding: EdgeInsets.all(context.rSpacing(16)),
       decoration: BoxDecoration(
@@ -76,14 +122,14 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  text: 'Company Name',
+                  text: authState.companyName ?? 'Company Name',
                   fontSize: context.rFontSize(15),
                   fontWeight: FontWeight.w600,
                   color: ColorConsts.black,
                 ),
                 SizedBox(height: context.rSpacing(4)),
                 CustomText(
-                  text: 'annaben123@gmail.com',
+                  text: authState.email ?? 'email@example.com',
                   fontSize: context.rFontSize(12),
                   color: ColorConsts.textColor,
                 ),
@@ -99,11 +145,14 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
                 color: ColorConsts.textColorRed.withOpacity(0.3),
                 width: 2,
               ),
-              image: const DecorationImage(
-                image: NetworkImage(
-                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-                ),
-                fit: BoxFit.cover,
+              color: ColorConsts.lightGrey,
+            ),
+            child: Center(
+              child: CustomText(
+                text: (authState.companyName ?? 'C')[0].toUpperCase(),
+                fontSize: context.rFontSize(18),
+                fontWeight: FontWeight.bold,
+                color: ColorConsts.black,
               ),
             ),
           ),
@@ -141,9 +190,7 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
           _buildDivider(),
           _buildMenuItem(
             title: 'Notifications',
-            onTap: () {
-              // Handle notifications
-            },
+            onTap: () => context.pushNamed('notifications'),
           ),
           _buildDivider(),
           _buildMenuItem(
@@ -195,6 +242,8 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
   }
 
   Widget _buildLogoutSection() {
+    final authState = ref.watch(authControllerProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: ColorConsts.lightGreyBackground,
@@ -217,10 +266,7 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
             ),
           ),
           InkWell(
-            onTap: () {
-              // Handle logout
-              context.goNamed('login');
-            },
+            onTap: authState.isLoading ? null : _handleLogout,
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: context.rSpacing(16),
@@ -228,14 +274,23 @@ class _SettingsPageAppState extends State<SettingsPageApp> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.logout,
-                    size: context.rIconSize(18),
-                    color: ColorConsts.textColorRed,
-                  ),
+                  authState.isLoading
+                      ? SizedBox(
+                          width: context.rIconSize(18),
+                          height: context.rIconSize(18),
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: ColorConsts.textColorRed,
+                          ),
+                        )
+                      : Icon(
+                          Icons.logout,
+                          size: context.rIconSize(18),
+                          color: ColorConsts.textColorRed,
+                        ),
                   SizedBox(width: context.rSpacing(8)),
                   CustomText(
-                    text: 'Logout',
+                    text: authState.isLoading ? 'Logging out...' : 'Logout',
                     fontSize: context.rFontSize(14),
                     fontWeight: FontWeight.w500,
                     color: ColorConsts.textColorRed,

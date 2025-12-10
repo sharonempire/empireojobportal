@@ -1,47 +1,156 @@
+import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
+import 'package:empire_job/features/presentation/widgets/multi_select_dropdown_widget.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class JobPageApp extends StatefulWidget {
+class JobPageApp extends ConsumerStatefulWidget {
   const JobPageApp({super.key});
 
   @override
-  State<JobPageApp> createState() => _JobPageAppState();
+  ConsumerState<JobPageApp> createState() => _JobPageAppState();
 }
 
-class _JobPageAppState extends State<JobPageApp> {
-  int _currentStep = 0;
+class _JobPageAppState extends ConsumerState<JobPageApp> {
   final int _totalSteps = 4;
 
   // Step 1 Controllers
   final _jobTitleController = TextEditingController();
-  String? _selectedIndustryType;
-  String? _selectedJobType;
-  String? _selectedWorkMode;
-  String? _selectedMinExp;
-  String? _selectedMaxExp;
-
-  // Step 2 Controllers
-  String? _selectedCountry;
-  String? _selectedState;
-  String? _selectedCity;
-  RangeValues _salaryRange = const RangeValues(40000, 80000);
 
   // Step 3 Controllers
   final _roleOverviewController = TextEditingController();
-  String? _selectedLanguages;
-  String? _selectedResponsibilities;
-  String? _selectedBenefits;
 
-  // Step 4 Controllers
-  String? _selectedEducation;
-  String? _selectedSkills;
+  // Dropdown options
+  final List<String> _industryTypes = [
+    'Information Technology',
+    'Healthcare',
+    'Finance',
+    'Education',
+    'Manufacturing',
+    'Retail',
+    'Other',
+  ];
+
+  final List<String> _jobTypes = [
+    'Full-time',
+    'Part-time',
+    'Contract',
+    'Freelance',
+    'Internship',
+  ];
+
+  final List<String> _workModes = ['Remote', 'On-site', 'Hybrid'];
+
+  final List<String> _experienceOptions = [
+    '0 years',
+    '1 year',
+    '2 years',
+    '3 years',
+    '4 years',
+    '5+ years',
+  ];
+
+  final List<String> _countries = [
+    'India',
+    'United States',
+    'Canada',
+    'United Kingdom',
+    'Australia',
+    'Germany',
+    'UAE',
+  ];
+
+  final List<String> _states = [
+    'Maharashtra',
+    'Karnataka',
+    'Tamil Nadu',
+    'Delhi',
+    'Gujarat',
+    'California',
+    'Texas',
+  ];
+
+  final List<String> _cities = [
+    'Mumbai',
+    'Bangalore',
+    'Chennai',
+    'Delhi',
+    'Hyderabad',
+    'Pune',
+  ];
+
+  final List<String> _languages = [
+    'English',
+    'Spanish',
+    'French',
+    'German',
+    'Mandarin',
+    'Hindi',
+    'Other',
+  ];
+
+  final List<String> _responsibilities = [
+    'Code Development',
+    'Team Management',
+    'Client Communication',
+    'Project Planning',
+    'Quality Assurance',
+    'Documentation',
+    'Other',
+  ];
+
+  final List<String> _benefits = [
+    'Health Insurance',
+    'Dental Insurance',
+    'Vision Insurance',
+    '401(k)',
+    'Paid Time Off',
+    'Flexible Schedule',
+    'Remote Work',
+    'Other',
+  ];
+
+  final List<String> _educationOptions = [
+    'High School',
+    'Bachelor\'s Degree',
+    'Master\'s Degree',
+    'PhD',
+    'Diploma',
+  ];
+
+  final List<String> _skillsOptions = [
+    'JavaScript',
+    'Python',
+    'Java',
+    'Flutter',
+    'React',
+    'Node.js',
+    'SQL',
+    'AWS',
+    'TypeScript',
+    'Dart',
+    'C++',
+    'Go',
+    'Kotlin',
+    'Swift',
+    'Other',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Reset the job form when entering the page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(jobProvider.notifier).resetJob();
+    });
+  }
 
   @override
   void dispose() {
@@ -51,22 +160,36 @@ class _JobPageAppState extends State<JobPageApp> {
   }
 
   void _nextStep() {
-    if (_currentStep < _totalSteps - 1) {
-      setState(() {
-        _currentStep++;
-      });
+    final jobNotifier = ref.read(jobProvider.notifier);
+    final currentStep = jobNotifier.currentStep;
+
+    if (currentStep < _totalSteps) {
+      jobNotifier.nextStep();
     } else {
       // Submit the form
       _submitJob();
     }
   }
 
-  void _submitJob() {
-    // Handle job submission
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Job posted successfully!')));
-    context.goNamed('dashboard');
+  Future<void> _submitJob() async {
+    try {
+      await ref.read(jobProvider.notifier).submitJob();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Job posted successfully!')),
+        );
+        context.goNamed('dashboard');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: ColorConsts.textColorRed,
+          ),
+        );
+      }
+    }
   }
 
   void _onNavTap(int index) {
@@ -85,16 +208,18 @@ class _JobPageAppState extends State<JobPageApp> {
 
   @override
   Widget build(BuildContext context) {
+    final jobState = ref.watch(jobProvider);
+    final currentStep = jobState.currentJob.currentStep;
+
     return Scaffold(
       backgroundColor: ColorConsts.lightGreyBackground,
       appBar: CommonAppBar(
         showProfile: true,
-        profileName: 'Michael Roberts',
-        profileImageUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+        profileName: 'Create Job',
+        profileImageUrl: null,
         showNotification: true,
         onNotificationPressed: () {
-          // Handle notification tap
+          context.pushNamed('notifications');
         },
       ),
       body: SafeArea(
@@ -135,10 +260,10 @@ class _JobPageAppState extends State<JobPageApp> {
                           ),
                           SizedBox(height: context.rSpacing(16)),
                           // Progress Bar
-                          _buildProgressBar(),
+                          _buildProgressBar(currentStep),
                           SizedBox(height: context.rSpacing(24)),
                           // Step Content
-                          _buildStepContent(),
+                          _buildStepContent(currentStep),
                         ],
                       ),
                     ),
@@ -149,20 +274,42 @@ class _JobPageAppState extends State<JobPageApp> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      PrimaryButtonWidget(
-                        text: _currentStep == _totalSteps - 1
-                            ? 'Submit'
-                            : 'Next',
-                        onPressed: _nextStep,
-                        backgroundColor: ColorConsts.black,
-                        textColor: ColorConsts.white,
-                        showBorder: false,
-                        showShadow: false,
-                        height: context.rHeight(30),
-                        width: context.rSpacing(90),
-                        borderRadius: 26,
-                        fontSize: context.rFontSize(12),
-                      ),
+                      if (currentStep > 1)
+                        Padding(
+                          padding: EdgeInsets.only(right: context.rSpacing(8)),
+                          child: PrimaryButtonWidget(
+                            text: 'Back',
+                            onPressed: () {
+                              ref.read(jobProvider.notifier).previousStep();
+                            },
+                            backgroundColor: ColorConsts.white,
+                            textColor: ColorConsts.black,
+                            showBorder: true,
+                            showShadow: false,
+                            height: context.rHeight(30),
+                            width: context.rSpacing(80),
+                            borderRadius: 26,
+                            fontSize: context.rFontSize(12),
+                          ),
+                        ),
+                      jobState.isSubmittingJob
+                          ? const CircularProgressIndicator(
+                              color: ColorConsts.black,
+                            )
+                          : PrimaryButtonWidget(
+                              text: currentStep == _totalSteps
+                                  ? 'Submit'
+                                  : 'Next',
+                              onPressed: _nextStep,
+                              backgroundColor: ColorConsts.black,
+                              textColor: ColorConsts.white,
+                              showBorder: false,
+                              showShadow: false,
+                              height: context.rHeight(30),
+                              width: context.rSpacing(90),
+                              borderRadius: 26,
+                              fontSize: context.rFontSize(12),
+                            ),
                     ],
                   ),
                 ],
@@ -178,12 +325,12 @@ class _JobPageAppState extends State<JobPageApp> {
     );
   }
 
-  Widget _buildProgressBar() {
+  Widget _buildProgressBar(int currentStep) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LinearProgressIndicator(
-          value: (_currentStep + 1) / _totalSteps,
+          value: currentStep / _totalSteps,
           backgroundColor: ColorConsts.lightGrey,
           valueColor: const AlwaysStoppedAnimation<Color>(
             ColorConsts.textColorRed,
@@ -196,7 +343,7 @@ class _JobPageAppState extends State<JobPageApp> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             CustomText(
-              text: 'Step ${_currentStep + 1} of $_totalSteps',
+              text: 'Step $currentStep of $_totalSteps',
               fontSize: context.rFontSize(10),
               color: ColorConsts.textColor,
             ),
@@ -206,15 +353,15 @@ class _JobPageAppState extends State<JobPageApp> {
     );
   }
 
-  Widget _buildStepContent() {
-    switch (_currentStep) {
-      case 0:
-        return _buildStep1();
+  Widget _buildStepContent(int currentStep) {
+    switch (currentStep) {
       case 1:
-        return _buildStep2();
+        return _buildStep1();
       case 2:
-        return _buildStep3();
+        return _buildStep2();
       case 3:
+        return _buildStep3();
+      case 4:
         return _buildStep4();
       default:
         return const SizedBox();
@@ -223,6 +370,9 @@ class _JobPageAppState extends State<JobPageApp> {
 
   // Step 1: Job Information
   Widget _buildStep1() {
+    final jobState = ref.watch(jobProvider);
+    final job = jobState.currentJob;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -244,14 +394,20 @@ class _JobPageAppState extends State<JobPageApp> {
           useBorderOnly: true,
           height: context.rHeight(30),
           borderRadius: 8,
+          onChanged: (value) {
+            ref.read(jobProvider.notifier).setJobTitle(value);
+          },
         ),
         SizedBox(height: context.rSpacing(20)),
         _buildFieldLabel('Industry Type'),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
-          value: _selectedIndustryType,
+          value: job.industryType,
           hint: 'Information Technology',
-          onChanged: (val) => setState(() => _selectedIndustryType = val),
+          items: _industryTypes,
+          onChanged: (val) {
+            ref.read(jobProvider.notifier).setIndustryType(val);
+          },
         ),
         SizedBox(height: context.rSpacing(20)),
         Row(
@@ -263,9 +419,12 @@ class _JobPageAppState extends State<JobPageApp> {
                   _buildFieldLabel('Job Type'),
                   SizedBox(height: context.rSpacing(8)),
                   _buildDropdown(
-                    value: _selectedJobType,
+                    value: job.jobType,
                     hint: 'Full-time',
-                    onChanged: (val) => setState(() => _selectedJobType = val),
+                    items: _jobTypes,
+                    onChanged: (val) {
+                      ref.read(jobProvider.notifier).setJobType(val);
+                    },
                   ),
                 ],
               ),
@@ -278,9 +437,12 @@ class _JobPageAppState extends State<JobPageApp> {
                   _buildFieldLabel('Work Mode'),
                   SizedBox(height: context.rSpacing(8)),
                   _buildDropdown(
-                    value: _selectedWorkMode,
+                    value: job.workMode,
                     hint: 'Hybrid',
-                    onChanged: (val) => setState(() => _selectedWorkMode = val),
+                    items: _workModes,
+                    onChanged: (val) {
+                      ref.read(jobProvider.notifier).setWorkMode(val);
+                    },
                   ),
                 ],
               ),
@@ -294,9 +456,12 @@ class _JobPageAppState extends State<JobPageApp> {
           children: [
             Expanded(
               child: _buildDropdown(
-                value: _selectedMinExp,
+                value: job.minExperience,
                 hint: 'Min-exp',
-                onChanged: (val) => setState(() => _selectedMinExp = val),
+                items: _experienceOptions,
+                onChanged: (val) {
+                  ref.read(jobProvider.notifier).setMinExperience(val);
+                },
               ),
             ),
             Padding(
@@ -309,9 +474,12 @@ class _JobPageAppState extends State<JobPageApp> {
             ),
             Expanded(
               child: _buildDropdown(
-                value: _selectedMaxExp,
+                value: job.maxExperience,
                 hint: 'Max-exp',
-                onChanged: (val) => setState(() => _selectedMaxExp = val),
+                items: _experienceOptions,
+                onChanged: (val) {
+                  ref.read(jobProvider.notifier).setMaxExperience(val);
+                },
               ),
             ),
           ],
@@ -322,6 +490,11 @@ class _JobPageAppState extends State<JobPageApp> {
 
   // Step 2: Location & Salary Details
   Widget _buildStep2() {
+    final jobState = ref.watch(jobProvider);
+    final job = jobState.currentJob;
+    final minSalary = job.minSalary;
+    final maxSalary = job.maxSalary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -337,25 +510,34 @@ class _JobPageAppState extends State<JobPageApp> {
         _buildFieldLabel('Country'),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
-          value: _selectedCountry,
+          value: job.country,
           hint: 'Select your country',
-          onChanged: (val) => setState(() => _selectedCountry = val),
+          items: _countries,
+          onChanged: (val) {
+            ref.read(jobProvider.notifier).setCountry(val);
+          },
         ),
         SizedBox(height: context.rSpacing(20)),
         _buildFieldLabel('State / Province / Region'),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
-          value: _selectedState,
+          value: job.stateProvince,
           hint: 'Select your state',
-          onChanged: (val) => setState(() => _selectedState = val),
+          items: _states,
+          onChanged: (val) {
+            ref.read(jobProvider.notifier).setStateProvince(val);
+          },
         ),
         SizedBox(height: context.rSpacing(20)),
         _buildFieldLabel('City'),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
-          value: _selectedCity,
+          value: job.city,
           hint: 'Select your city',
-          onChanged: (val) => setState(() => _selectedCity = val),
+          items: _cities,
+          onChanged: (val) {
+            ref.read(jobProvider.notifier).setCity(val);
+          },
         ),
         SizedBox(height: context.rSpacing(20)),
         _buildFieldLabel('Salary'),
@@ -383,8 +565,8 @@ class _JobPageAppState extends State<JobPageApp> {
                   ),
                   CustomText(
                     text:
-                        '\$${_salaryRange.start.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} - '
-                        '\$${_salaryRange.end.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                        '\$${minSalary.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} - '
+                        '\$${maxSalary.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
                     fontSize: context.rFontSize(11),
                     fontWeight: FontWeight.w500,
                     color: ColorConsts.black,
@@ -405,13 +587,13 @@ class _JobPageAppState extends State<JobPageApp> {
                     ),
                   ),
                   child: RangeSlider(
-                    values: _salaryRange,
+                    values: RangeValues(minSalary, maxSalary),
                     min: 0,
                     max: 150000,
                     onChanged: (values) {
-                      setState(() {
-                        _salaryRange = values;
-                      });
+                      ref
+                          .read(jobProvider.notifier)
+                          .setSalaryRange(values.start, values.end);
                     },
                   ),
                 ),
@@ -440,6 +622,9 @@ class _JobPageAppState extends State<JobPageApp> {
 
   // Step 3: Job Description
   Widget _buildStep3() {
+    final jobState = ref.watch(jobProvider);
+    final job = jobState.currentJob;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -462,30 +647,42 @@ class _JobPageAppState extends State<JobPageApp> {
           height: context.rHeight(110),
           borderRadius: 8,
           maxLines: 4,
+          onChanged: (value) {
+            ref.read(jobProvider.notifier).setRoleOverview(value);
+          },
         ),
-        SizedBox(height: context.rSpacing(10)),
+        SizedBox(height: context.rSpacing(16)),
         _buildFieldLabel('Languages'),
         SizedBox(height: context.rSpacing(8)),
-        _buildDropdown(
-          value: _selectedLanguages,
-          hint: 'Select your locations',
-          onChanged: (val) => setState(() => _selectedLanguages = val),
+        MultiSelectDropdownWidget(
+          options: _languages,
+          initialSelected: job.languages,
+          height: context.rHeight(35),
+          onChanged: (values) {
+            ref.read(jobProvider.notifier).setLanguages(values);
+          },
         ),
-        SizedBox(height: context.rSpacing(20)),
+        SizedBox(height: context.rSpacing(16)),
         _buildFieldLabel('Key Responsibilities'),
         SizedBox(height: context.rSpacing(8)),
-        _buildDropdown(
-          value: _selectedResponsibilities,
-          hint: 'Select your responsibilities',
-          onChanged: (val) => setState(() => _selectedResponsibilities = val),
+        MultiSelectDropdownWidget(
+          options: _responsibilities,
+          initialSelected: job.keyResponsibilities,
+          height: context.rHeight(35),
+          onChanged: (values) {
+            ref.read(jobProvider.notifier).setKeyResponsibilities(values);
+          },
         ),
-        SizedBox(height: context.rSpacing(20)),
+        SizedBox(height: context.rSpacing(16)),
         _buildFieldLabel('Benefits'),
         SizedBox(height: context.rSpacing(8)),
-        _buildDropdown(
-          value: _selectedBenefits,
-          hint: 'Select your benefits',
-          onChanged: (val) => setState(() => _selectedBenefits = val),
+        MultiSelectDropdownWidget(
+          options: _benefits,
+          initialSelected: job.benefits,
+          height: context.rHeight(35),
+          onChanged: (values) {
+            ref.read(jobProvider.notifier).setBenefits(values);
+          },
         ),
       ],
     );
@@ -493,6 +690,9 @@ class _JobPageAppState extends State<JobPageApp> {
 
   // Step 4: Required Qualifications
   Widget _buildStep4() {
+    final jobState = ref.watch(jobProvider);
+    final job = jobState.currentJob;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -508,17 +708,23 @@ class _JobPageAppState extends State<JobPageApp> {
         _buildFieldLabel('Education'),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
-          value: _selectedEducation,
+          value: job.education,
           hint: 'Select your education',
-          onChanged: (val) => setState(() => _selectedEducation = val),
+          items: _educationOptions,
+          onChanged: (val) {
+            ref.read(jobProvider.notifier).setEducation(val);
+          },
         ),
-        SizedBox(height: context.rSpacing(20)),
+        SizedBox(height: context.rSpacing(16)),
         _buildFieldLabel('Skills'),
         SizedBox(height: context.rSpacing(8)),
-        _buildDropdown(
-          value: _selectedSkills,
-          hint: 'Select your skills',
-          onChanged: (val) => setState(() => _selectedSkills = val),
+        MultiSelectDropdownWidget(
+          options: _skillsOptions,
+          initialSelected: job.skills,
+          height: context.rHeight(35),
+          onChanged: (values) {
+            ref.read(jobProvider.notifier).setSkills(values);
+          },
         ),
       ],
     );
@@ -536,6 +742,7 @@ class _JobPageAppState extends State<JobPageApp> {
   Widget _buildDropdown({
     String? value,
     required String hint,
+    required List<String> items,
     required Function(String?) onChanged,
   }) {
     return Container(
@@ -559,7 +766,18 @@ class _JobPageAppState extends State<JobPageApp> {
             color: ColorConsts.iconGrey,
             size: context.rIconSize(20),
           ),
-          items: const [],
+          items: items
+              .map(
+                (item) => DropdownMenuItem<String>(
+                  value: item,
+                  child: CustomText(
+                    text: item,
+                    fontSize: context.rFontSize(10),
+                    color: ColorConsts.black,
+                  ),
+                ),
+              )
+              .toList(),
           onChanged: onChanged,
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
@@ -5,16 +6,17 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class LoginPageApp extends StatefulWidget {
+class LoginPageApp extends ConsumerStatefulWidget {
   const LoginPageApp({super.key});
 
   @override
-  State<LoginPageApp> createState() => _LoginPageAppState();
+  ConsumerState<LoginPageApp> createState() => _LoginPageAppState();
 }
 
-class _LoginPageAppState extends State<LoginPageApp> {
+class _LoginPageAppState extends ConsumerState<LoginPageApp> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -35,10 +37,38 @@ class _LoginPageAppState extends State<LoginPageApp> {
     });
   }
 
-  void _onLogin() {
+  Future<void> _onLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Navigate to dashboard after successful login
-      context.goNamed('dashboard');
+      try {
+        await ref
+            .read(authControllerProvider.notifier)
+            .login(
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+            );
+
+        if (mounted) {
+          context.goNamed('dashboard');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                e.toString().replaceAll("Exception:", "").trim(),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -52,6 +82,8 @@ class _LoginPageAppState extends State<LoginPageApp> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+
     return Scaffold(
       backgroundColor: ColorConsts.white,
       body: SafeArea(
@@ -66,16 +98,14 @@ class _LoginPageAppState extends State<LoginPageApp> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Title
                   CustomText(
                     text: 'Welcome Back !',
-                    fontSize: context.rFontSize(20),
+                    fontSize: context.rFontSize(16),
                     fontWeight: FontWeight.bold,
                     color: ColorConsts.black,
                   ),
                   SizedBox(height: context.rSpacing(12)),
 
-                  // Subtitle
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: context.rSpacing(16),
@@ -83,14 +113,14 @@ class _LoginPageAppState extends State<LoginPageApp> {
                     child: CustomText(
                       text:
                           'Access your HR dashboard and continue managing jobs and applicants.',
-                      fontSize: context.rFontSize(14),
+                      fontSize: context.rFontSize(12),
                       fontWeight: FontWeight.w500,
                       color: ColorConsts.textColorBlack,
                       textAlign: TextAlign.center,
+                      maxLines: 2,
                     ),
                   ),
 
-                  // Illustration
                   Container(
                     height: context.rImageSize(258),
                     width: context.rImageSize(220),
@@ -117,7 +147,6 @@ class _LoginPageAppState extends State<LoginPageApp> {
                   ),
                   SizedBox(height: context.rSpacing(22)),
 
-                  // Email Field
                   _buildFieldLabel('Email Address'),
                   SizedBox(height: context.rSpacing(1)),
                   CommonTextfieldWidget(
@@ -129,11 +158,10 @@ class _LoginPageAppState extends State<LoginPageApp> {
                     requiredField: true,
                     height: context.rHeight(56),
                   ),
-                  SizedBox(height: context.rSpacing(24)),
+                  SizedBox(height: context.rSpacing(16)),
 
-                  // Password Field
                   _buildFieldLabel('Password'),
-                  SizedBox(height: context.rSpacing(8)),
+                  SizedBox(height: context.rSpacing(5)),
                   CommonTextfieldWidget(
                     controller: _passwordController,
                     hintText: 'Enter your secure password.',
@@ -188,7 +216,6 @@ class _LoginPageAppState extends State<LoginPageApp> {
                           ),
                         ],
                       ),
-
                       GestureDetector(
                         onTap: _onForgotPassword,
                         child: CustomText(
@@ -202,18 +229,21 @@ class _LoginPageAppState extends State<LoginPageApp> {
                   ),
                   SizedBox(height: context.rSpacing(32)),
 
-                  // Login Button
-                  PrimaryButtonWidget(
-                    text: 'Login',
-                    onPressed: _onLogin,
-                    backgroundColor: ColorConsts.white,
-                    textColor: ColorConsts.black,
-                    showBorder: false,
-                    showShadow: true,
-                    height: context.rHeight(42),
-                    borderRadius: 26,
-                    fontSize: context.rFontSize(14),
-                  ),
+                  authState.isLoading
+                      ? const CircularProgressIndicator(
+                          color: ColorConsts.black,
+                        )
+                      : PrimaryButtonWidget(
+                          text: 'Login',
+                          onPressed: _onLogin,
+                          backgroundColor: ColorConsts.white,
+                          textColor: ColorConsts.black,
+                          showBorder: false,
+                          showShadow: true,
+                          height: context.rHeight(42),
+                          borderRadius: 26,
+                          fontSize: context.rFontSize(14),
+                        ),
                   SizedBox(height: context.rSpacing(52)),
 
                   Row(
@@ -249,7 +279,7 @@ class _LoginPageAppState extends State<LoginPageApp> {
       alignment: Alignment.centerLeft,
       child: CustomText(
         text: label,
-        fontSize: context.rFontSize(14),
+        fontSize: context.rFontSize(13),
         fontWeight: FontWeight.w500,
         color: ColorConsts.black,
       ),

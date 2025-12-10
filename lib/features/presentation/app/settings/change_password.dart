@@ -1,19 +1,21 @@
+import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class ChangePassword extends StatefulWidget {
+class ChangePassword extends ConsumerStatefulWidget {
   const ChangePassword({super.key});
 
   @override
-  State<ChangePassword> createState() => _ChangePasswordState();
+  ConsumerState<ChangePassword> createState() => _ChangePasswordState();
 }
 
-class _ChangePasswordState extends State<ChangePassword> {
+class _ChangePasswordState extends ConsumerState<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
   final _oldPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -49,18 +51,48 @@ class _ChangePasswordState extends State<ChangePassword> {
     });
   }
 
-  void _updatePassword() {
+  Future<void> _updatePassword() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Handle password update
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated successfully!')),
-      );
-      context.pop();
+      if (_newPasswordController.text != _confirmPasswordController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Passwords do not match'),
+            backgroundColor: ColorConsts.textColorRed,
+          ),
+        );
+        return;
+      }
+
+      try {
+        await ref
+            .read(settingsProvider.notifier)
+            .changePassword(
+              oldPassword: _oldPasswordController.text,
+              newPassword: _newPasswordController.text,
+            );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Password updated successfully!')),
+          );
+          context.pop();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: ColorConsts.textColorRed,
+            ),
+          );
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final settingsState = ref.watch(settingsProvider);
+
     return Scaffold(
       backgroundColor: ColorConsts.white,
       body: SafeArea(
@@ -105,18 +137,22 @@ class _ChangePasswordState extends State<ChangePassword> {
               children: [
                 Padding(
                   padding: EdgeInsets.all(context.rSpacing(16)),
-                  child: PrimaryButtonWidget(
-                    text: 'Update Password',
-                    onPressed: _updatePassword,
-                    backgroundColor: ColorConsts.black,
-                    textColor: ColorConsts.white,
-                    showBorder: false,
-                    showShadow: false,
-                    height: context.rHeight(35),
-                    borderRadius: 24,
-                    width: context.rSpacing(155),
-                    fontSize: context.rFontSize(12),
-                  ),
+                  child: settingsState.isLoading
+                      ? const CircularProgressIndicator(
+                          color: ColorConsts.black,
+                        )
+                      : PrimaryButtonWidget(
+                          text: 'Update Password',
+                          onPressed: _updatePassword,
+                          backgroundColor: ColorConsts.black,
+                          textColor: ColorConsts.white,
+                          showBorder: false,
+                          showShadow: false,
+                          height: context.rHeight(35),
+                          borderRadius: 24,
+                          width: context.rSpacing(155),
+                          fontSize: context.rFontSize(12),
+                        ),
                 ),
               ],
             ),

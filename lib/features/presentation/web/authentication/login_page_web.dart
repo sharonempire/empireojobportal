@@ -286,7 +286,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              context.go(RouterConsts.signupPagePath);
+                              context.go(RouterConsts.signupPath);
                             },
                             child: CustomText(
                               text: 'Register',

@@ -29,7 +29,9 @@ class LocationSalaryStep extends ConsumerWidget {
           fontWeight: FontWeight.w600,
           color: context.themeDark,
         ),
+
         const SizedBox(height: 32),
+
         Row(
           children: [
             Expanded(
@@ -195,4 +197,3 @@ class LocationSalaryStep extends ConsumerWidget {
     );
   }
 }
-

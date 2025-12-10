@@ -2,6 +2,8 @@ import 'package:empire_job/features/presentation/app/authentication/login_page_a
 import 'package:empire_job/features/presentation/app/authentication/signup_page_app.dart';
 import 'package:empire_job/features/presentation/app/dashborad/dashbord.dart';
 import 'package:empire_job/features/presentation/app/job/job_page_app.dart';
+import 'package:empire_job/features/presentation/app/job/view_job_page_app.dart';
+import 'package:empire_job/features/presentation/app/notification/notification.dart';
 import 'package:empire_job/features/presentation/app/settings/change_password.dart';
 import 'package:empire_job/features/presentation/app/settings/company_settings.dart';
 import 'package:empire_job/features/presentation/app/settings/settings_page_app.dart';
@@ -27,37 +29,29 @@ class RouterConsts {
   // Route Paths
   static const String loginPath = '/login';
   static const String signupPath = '/signup';
-  static const String signupPagePath = '/signUp';
-  static const String settingsPath = '/settings';
-  static const String dashboardPath = '/dashBoard';
-  static const String createJobPath = '/createJob';
-  static const String manageJobsPath = '/manageJobs';
-  static const String notificationsPath = '/notifications';
-
-  static const String splashScreenPath = '/splash';
-
+  static const String dashboardPath = '/dashboard';
   static const String addJobPath = '/add-job';
-
+  static const String viewJobPath = '/view-job';
+  static const String settingsPath = '/settings';
   static const String companySettingsPath = '/company-settings';
   static const String changePasswordPath = '/change-password';
+  static const String notificationsPath = '/notifications';
+  static const String splashScreenPath = '/splash';
 
   // Route Names
   static const String loginName = 'login';
   static const String signupName = 'signup';
-  static const String settingsName = 'settings';
-  static const String dashboardName = 'dashBoard';
-  static const String createJobName = 'createJob';
-  static const String manageJobsName = 'manageJobs';
-  static const String notificationsName = 'notifications';
-
-  static const String splashName = 'splash';
-
+  static const String dashboardName = 'dashboard';
   static const String addJobName = 'addJob';
-
+  static const String viewJobName = 'viewJob';
+  static const String settingsName = 'settings';
   static const String companySettingsName = 'companySettings';
   static const String changePasswordName = 'changePassword';
+  static const String notificationsName = 'notifications';
+  static const String splashName = 'splash';
 
   static final List<RouteModel> routeModels = List.unmodifiable([
+    // Authentication Routes
     RouteModel(
       path: loginPath,
       name: loginName,
@@ -70,23 +64,35 @@ class RouterConsts {
       appBuilder: (context, state) => const SignupPageApp(),
       webBuilder: (context, state) => const SignupPageWeb(),
     ),
+
+    // Dashboard Route
     RouteModel(
       path: dashboardPath,
       name: dashboardName,
       appBuilder: (context, state) => const Dashbord(),
-      webBuilder: (context, state) => const Dashbord(),
+      webBuilder: (context, state) => const DashboardPageWeb(),
     ),
+
+    // Job Routes
     RouteModel(
       path: addJobPath,
       name: addJobName,
       appBuilder: (context, state) => const JobPageApp(),
-      webBuilder: (context, state) => const JobPageApp(),
+      webBuilder: (context, state) => const CreateJobPageWeb(),
     ),
+    RouteModel(
+      path: viewJobPath,
+      name: viewJobName,
+      appBuilder: (context, state) => const ViewJobPageApp(),
+      webBuilder: (context, state) => const ManageJobsPageWeb(),
+    ),
+
+    // Settings Routes
     RouteModel(
       path: settingsPath,
       name: settingsName,
       appBuilder: (context, state) => const SettingsPageApp(),
-      webBuilder: (context, state) => const SettingsPageApp(),
+      webBuilder: (context, state) => const SettingsPageWeb(),
     ),
     RouteModel(
       path: companySettingsPath,
@@ -100,34 +106,12 @@ class RouterConsts {
       appBuilder: (context, state) => const ChangePassword(),
       webBuilder: (context, state) => const ChangePassword(),
     ),
-    RouteModel(
-      path: settingsPath,
-      name: settingsName,
-      appBuilder: (context, state) => const SettingsPageWeb(),
-      webBuilder: (context, state) => const SettingsPageWeb(),
-    ),
-    RouteModel(
-      path: dashboardPath,
-      name: dashboardName,
-      appBuilder: (context, state) => const DashboardPageWeb(),
-      webBuilder: (context, state) => const DashboardPageWeb(),
-    ),
-    RouteModel(
-      path: createJobPath,
-      name: createJobName,
-      appBuilder: (context, state) => const CreateJobPageWeb(),
-      webBuilder: (context, state) => const CreateJobPageWeb(),
-    ),
-    RouteModel(
-      path: manageJobsPath,
-      name: manageJobsName,
-      appBuilder: (context, state) => const ManageJobsPageWeb(),
-      webBuilder: (context, state) => const ManageJobsPageWeb(),
-    ),
+
+    // Notifications Route
     RouteModel(
       path: notificationsPath,
       name: notificationsName,
-      appBuilder: (context, state) => const NotificationsPageWeb(),
+      appBuilder: (context, state) => const NotificationPageApp(),
       webBuilder: (context, state) => const NotificationsPageWeb(),
     ),
   ]);
