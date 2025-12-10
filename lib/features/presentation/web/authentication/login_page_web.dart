@@ -1,18 +1,24 @@
+import 'dart:developer';
+
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
+import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
 import 'package:flutter/material.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-class LoginPageWeb extends StatefulWidget {
+class LoginPageWeb extends ConsumerStatefulWidget {
   const LoginPageWeb({super.key});
 
   @override
-  State<LoginPageWeb> createState() => _LoginPageWebState();
+  ConsumerState<LoginPageWeb> createState() => _LoginPageWebState();
 }
 
-class _LoginPageWebState extends State<LoginPageWeb> {
+class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -26,219 +32,288 @@ class _LoginPageWebState extends State<LoginPageWeb> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Handle login logic
-      _formKey.currentState?.save();
-      print('Login successful');
-    }
-  }
+  void _showError(String message) {
+    if (!mounted) return;
 
-  void _handleForgotPassword() {
-    // Navigate to forgot password page
-
-    print('Navigate to forgot password');
-  }
-
-  void _handleRegister() {
-    // Navigate to register page
-    print('Navigate to register');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isLargeScreen = size.width > 900;
-
-    return Scaffold(
-      backgroundColor: context.themeDark,
-      body: Center(
-        child: SingleChildScrollView(
-          child: isLargeScreen
-              ? _buildLargeScreenLayout()
-              : _buildSmallScreenLayout(),
-        ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
-  Widget _buildLargeScreenLayout() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Flexible(
-          flex: 1,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 450),
-            child: _buildForm(),
-          ),
-        ),
-        const SizedBox(width: 80),
-        Flexible(
-          flex: 1,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: _buildImage(),
-          ),
-        ),
-      ],
+  void _showSuccess(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
-  Widget _buildSmallScreenLayout() {
-    return Column(
-      children: [
-        Container(
-          constraints: const BoxConstraints(maxWidth: 450),
-          child: _buildForm(),
-        ),
-        const SizedBox(height: 40),
-        Container(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: _buildImage(),
-        ),
-      ],
-    );
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    try {
+      log('Attempting login...');
+
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+
+      if (!mounted) return;
+
+      final authState = ref.read(authControllerProvider);
+
+      if (authState.isAuthenticated) {
+        log('Login successful');
+        _showSuccess('Login successful!');
+        context.go(RouterConsts.dashboardPath);
+      } else if (authState.error != null && authState.error!.isNotEmpty) {
+        log('Login failed: ${authState.error}');
+        _showError(authState.error!);
+      } else {
+        log('Login failed: Unknown error');
+        _showError('Login failed. Please try again.');
+      }
+    } catch (e) {
+      log('Login exception: $e');
+      if (!mounted) return;
+      final authState = ref.read(authControllerProvider);
+      final errorMessage = authState.error ?? e.toString();
+      _showError(errorMessage);
+    }
   }
 
-  Widget _buildForm() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomText(
-            text: 'Welcome Back !',
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-          const SizedBox(height: 12),
-          CustomText(
-            text:
-                'Access your HR dashboard and continue managing\njobs and applicants.',
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-            maxLines: 2,
-          ),
-          const SizedBox(height: 40),
-          CustomText(
-            text: 'Email Address',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-          const SizedBox(height: 8),
-          CommonTextfieldWidget(
-            height: 48,
-            controller: _emailController,
-            fillColor: context.themeDark,
-            hintText: 'Email Address',
-            requiredField: true,
-            keyboardType: TextInputType.emailAddress,
-            useFloatingLabel: true,
-            borderColor: context.themeIconGrey,
-            borderRadius: 8,
-            onChanged: (value) {},
-          ),
-          const SizedBox(height: 24),
+  void _handleForgotPassword() {}
 
-          // Password Field
-          CustomText(
-            text: 'Password',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-          const SizedBox(height: 8),
-          CommonTextfieldWidget(
-            fillColor: context.themeDark,
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    final size = MediaQuery.of(context).size;
+    final isLargeScreen = size.width > 1100;
 
-            controller: _passwordController,
-            hintText: 'Enter your secure password.',
-            obscureText: _obscurePassword,
-            requiredField: true,
-            useBorderOnly: true,
-            borderRadius: 12,
-            height: 50,
-            useFloatingLabel: true,
-          ),
-          const SizedBox(height: 16),
+    if (!authState.isCheckingAuth && authState.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go(RouterConsts.dashboardPath);
+        }
+      });
+    }
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: Checkbox(
-                      value: _rememberMe,
-                      onChanged: (value) {
-                        setState(() {
-                          _rememberMe = value ?? false;
-                        });
-                      },
-                      activeColor: context.themeDark,
-                      side: BorderSide(color: context.themeIconGrey),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  CustomText(
-                    text: 'Remember me',
-                    fontSize: 13,
-                    color: context.themeIconGrey,
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: _handleForgotPassword,
-                child: CustomText(
-                  text: 'Forgot Password?',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
+    if (authState.isCheckingAuth) {
+      return Scaffold(
+        backgroundColor: ColorConsts.white,
+        body: Center(
+          child: CircularProgressIndicator(color: ColorConsts.primaryColor),
+        ),
+      );
+    }
 
-          // Login Button
-          PrimaryButtonWidget(
-            text: 'Login',
-            onPressed: _handleLogin,
-            backgroundColor: context.themeDark,
-            textColor: context.themeWhite,
-            height: 50,
-            borderRadius: 12,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-          const SizedBox(height: 20),
-
-          // Register Link
-          Row(
+    return Scaffold(
+      backgroundColor: context.themeScaffold,
+      body: Container(
+        constraints: BoxConstraints(minHeight: size.height),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CustomText(
-                text: "Don't have an account? ",
-                fontSize: 14,
-                color: context.themeIconGrey,
-              ),
-              GestureDetector(
-                onTap: _handleRegister,
-                child: CustomText(
-                  text: 'Register',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red,
-                  decoration: TextDecoration.none,
+              Container(
+                constraints: const BoxConstraints(maxWidth: 450),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomText(
+                        text: 'Welcome Back !',
+                        fontSize: 50,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomText(
+                        text:
+                            'Access your HR dashboard and continue managing jobs and applicants.',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 76),
+                      CustomText(
+                        text: 'Email Address',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      const SizedBox(height: 8),
+                      CommonTextfieldWidget(
+                        height: 48,
+                        controller: _emailController,
+                        hintText:
+                            'Enter the email associated with your account.',
+                        requiredField: true,
+                        hintSize: 14,
+                        suffixIcon: SizedBox(),
+                        keyboardType: TextInputType.emailAddress,
+                        useFloatingLabel: true,
+                        borderColor: context.themeIconGrey,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Email is required';
+                          }
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return 'Please enter a valid email address';
+                          }
+                          return null;
+                        },
+                        onChanged: (value) {},
+                      ),
+                      const SizedBox(height: 40),
+                      CustomText(
+                        text: 'Password',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      const SizedBox(height: 8),
+                      CommonTextfieldWidget(
+                        controller: _passwordController,
+                        hintText: 'Enter your secure password.',
+                        hintSize: 14,
+                        obscureText: _obscurePassword,
+                        requiredField: true,
+                        useFloatingLabel: true,
+                        borderRadius: 12,
+                        height: 50,
+                        borderColor: context.themeIconGrey,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Password is required';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                        suffixIcon: IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: context.themeIconGrey,
+                            size: 16,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Transform.scale(
+                                scale: 0.8,
+                                child: Checkbox(
+                                  value: _rememberMe,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _rememberMe = value ?? false;
+                                    });
+                                  },
+                                  activeColor: context.themeDark,
+                                  side: BorderSide(
+                                    color: context.themeIconGrey,
+                                  ),
+                                ),
+                              ),
+                              CustomText(
+                                text: 'Remember me',
+                                fontSize: 10,
+                                color: context.themeIconGrey,
+                              ),
+                            ],
+                          ),
+                          GestureDetector(
+                            onTap: _handleForgotPassword,
+                            child: CustomText(
+                              text: 'Forgot Password?',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 36),
+                      PrimaryButtonWidget(
+                        text: authState.isLoading ? 'Logging in...' : 'Login',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        showShadow: true,
+                        showBorder: false,
+                        offset: 4,
+                        onPressed: authState.isLoading ? () {} : _handleLogin,
+                      ),
+                      const SizedBox(height: 48),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomText(
+                            text: "Don't have an account? ",
+                            fontSize: 12,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              context.go(RouterConsts.signupPagePath);
+                            },
+                            child: CustomText(
+                              text: 'Register',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: ColorConsts.textColorRed,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              if (isLargeScreen) ...[
+                const SizedBox(width: 250),
+                Flexible(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    child: _buildImage(),
+                  ),
+                ),
+              ],
             ],
           ),
-        ],
+        ),
       ),
     );
   }

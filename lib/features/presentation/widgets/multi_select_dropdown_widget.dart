@@ -98,8 +98,9 @@ class _MultiSelectDropdownWidgetState extends State<MultiSelectDropdownWidget> {
             border: Border.all(color: borderColor),
             color: context.themeWhite,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
             children: [
               Expanded(
                 child: SingleChildScrollView(
@@ -164,6 +165,7 @@ class _MultiSelectDropdownWidgetState extends State<MultiSelectDropdownWidget> {
                 onPressed: _isDisposed ? null : toggleDropdown,
               ),
             ],
+            ),
           ),
         ),
 
