@@ -4,6 +4,7 @@ import 'package:empire_job/features/presentation/widgets/common_single_selection
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/multi_select_dropdown_widget.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
@@ -124,9 +125,9 @@ class RequiredQualificationStep extends ConsumerWidget {
                   await notifier.submitJob();
                   if (context.mounted) {
                     context.showSuccessSnackbar('Job created successfully!');
-                    Future.delayed(const Duration(milliseconds: 500), () {
+                    Future.delayed(const Duration(seconds: 2), () {
                       if (context.mounted) {
-                        context.go('/dashBoard');
+                        context.go(RouterConsts.dashboardPath);
                       }
                     });
                   }
