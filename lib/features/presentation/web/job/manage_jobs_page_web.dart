@@ -111,13 +111,15 @@ class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
   }
 
   Widget _buildJobCard(BuildContext context, JobModel job) {
-    final isActive = job.status.toLowerCase() == 'active' ||
-        job.status.toLowerCase() == 'pending';
+    final isActive = job.status.toLowerCase() == 'active';
+    final isPending = job.status.toLowerCase() == 'pending';
     final statusColor = isActive
         ? const Color(0xFF4CAF50)
         : job.status.toLowerCase() == 'closed'
             ? const Color(0xFFE53935)
-            : context.themeIconGrey;
+            : isPending
+                ? Colors.orange
+                : context.themeIconGrey;
 
     return Column(
       children: [

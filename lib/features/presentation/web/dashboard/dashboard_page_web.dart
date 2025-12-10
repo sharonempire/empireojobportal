@@ -22,18 +22,53 @@ class DashboardPageWeb extends ConsumerStatefulWidget {
 }
 
 class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
+  bool _hasLoadedData = false;
+
   @override
   void initState() {
     super.initState();
-     WidgetsBinding.instance.addPostFrameCallback((_) {
+  }
+
+  void _loadDataIfNeeded(WidgetRef ref) {
+    final authState = ref.read(authControllerProvider);
+    if (!authState.isCheckingAuth && 
+        authState.isAuthenticated && 
+        authState.userId != null && 
+        !_hasLoadedData) {
+      _hasLoadedData = true;
       ref.read(jobProvider.notifier).loadJobs();
       ref.read(settingsProvider.notifier).loadCompanyData();
-    });
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    if (!authState.isVerified) {
+    final jobState = ref.watch(jobProvider);
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDataIfNeeded(ref);
+    });
+    
+    // if ( (jobState.isLoadingJobs && jobState.jobs.isEmpty)) {
+    //   return Scaffold(
+    //     backgroundColor: context.themeScaffoldCourse,
+    //     body: Column(
+    //       children: [
+    //         const CommonNavbar(),
+    //         Expanded(
+    //           child: Center(
+    //             child: CircularProgressIndicator(
+    //               color: context.themeDark,
+    //             ),
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   );
+    // }
+    
+    if (!authState.isVerified && authState.isAuthenticated) {
       return Scaffold(
         backgroundColor: context.themeScaffoldCourse,
         body: Column(
@@ -108,13 +143,14 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
     final totalJobs = jobState.jobs.length;
     final activeJobs = jobState.jobs.where((job) {
       final status = job.status.toLowerCase();
-      return status == 'active' || status == 'pending';
+      return status == 'active';
     }).length;
     final closedJobs = jobState.jobs.where((job) {
       return job.status.toLowerCase() == 'closed';
     }).length;
     
     final latestJobs = jobState.jobs.take(10).toList();
+    
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
       body: Column(
@@ -158,20 +194,15 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                                 builder: (context, ref, _) {
                                   final authState = ref.watch(authControllerProvider);
                                   return TextButton.icon(
-                                    onPressed: 
-                                    authState.isVerified
-                                        ?
-                                         () {
+                                    onPressed: authState.isVerified
+                                        ? () {
                                             context.go(RouterConsts.createJobPath);
                                           }
-                                        : 
-                                        () {
+                                        : () {
                                             context.showErrorSnackbar(
                                               'Please verify your account to create jobs',
                                             );
                                           },
-                                        
-                                    
                                     icon: Icon(
                                       Icons.add,
                                       size: 18,
