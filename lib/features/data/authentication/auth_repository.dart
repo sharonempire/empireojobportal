@@ -15,26 +15,48 @@ class AuthRepository {
 
   AuthRepository({required this.networkService});
 
+  Future<bool> _checkEmailExistsInProfiles(String email) async {
+    try {
+      final existingProfiles = await networkService.pull(
+        table: SupabaseTables.jobProfiles,
+        filters: {'email_address': email},
+        limit: 1,
+      );
+      return existingProfiles.isNotEmpty;
+    } catch (e) {
+      debugPrint('Error checking email in profiles: $e');
+      return false;
+    }
+  }
+
   Future<UserAuthResponse> signup(SignupRequest request) async {
     try {
+      final emailExists = await _checkEmailExistsInProfiles(request.email);
+      if (emailExists) {
+        throw 'This email is already registered. Please use a different email or try logging in.';
+      }
+      final normalizedEmail = request.email.trim().toLowerCase();
+            
       final authResponse = await networkService.auth.signUp(
-        email: request.email,
+        email: normalizedEmail,
         password: request.password,
       );
-
+      
       if (authResponse.user == null) {
         throw 'Failed to create user account';
       }
 
       final userId = authResponse.user!.id;
       final email = authResponse.user!.email ?? request.email;
+      
+
 
       try {
         final profileData = {
           'profile_id': userId, 
           'email_address': email,
           'company_name': request.companyName,
-          'status': 'unverified', // Initial status
+          'status': 'unverified',
         };
 
         await networkService.push(
@@ -44,9 +66,22 @@ class AuthRepository {
       } on PostgrestException catch (e) {
         debugPrint('Postgrest error during signup: ${e.code} - ${e.message}');
         debugPrint('Details: ${e.details}');
+                if (e.code == '23505') {
+          try {
+            await networkService.supabase.auth.admin.deleteUser(userId);
+          } catch (deleteError) {
+            debugPrint('Failed to delete user after profile creation error: $deleteError');
+          }
+          throw 'This email is already registered. Please use a different email or try logging in.';
+        }
+        
         throw 'Failed to create profile: ${networkService.parseError(e.message, 'Database error')}';
       } catch (e) {
-        debugPrint('Error creating profile: $e');
+        try {
+          await networkService.supabase.auth.admin.deleteUser(userId);
+        } catch (deleteError) {
+          debugPrint('Failed to delete user after profile creation error: $deleteError');
+        }
         throw 'Failed to create profile: ${e.toString()}';
       }
 
@@ -81,14 +116,18 @@ class AuthRepository {
 
   Future<UserAuthResponse> login(LoginRequest request) async {
     try {
+      final normalizedEmail = request.email.trim().toLowerCase();
+      
+      
       final authResponse = await networkService.auth.signInWithPassword(
-        email: request.email,
+        email: normalizedEmail,
         password: request.password,
       );
 
       if (authResponse.user == null) {
         throw 'Login failed: User not found';
       }
+      
 
       final userId = authResponse.user!.id;
       final email = authResponse.user!.email ?? request.email;
@@ -114,12 +153,18 @@ class AuthRepository {
         accessToken: authResponse.session?.accessToken,
       );
     } on AuthException catch (e) {
-      debugPrint('Auth error during login: ${e.message}');
+    
+          final errorLower = e.message.toLowerCase();
+      if (errorLower.contains('email not confirmed') ||
+          errorLower.contains('email_not_confirmed') ||
+          errorLower.contains('confirm your email') ||
+          errorLower.contains('email_confirmation')) {
+        throw 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
+      }
+            
       final errorMessage = _parseAuthError(e.message);
       throw errorMessage;
     } catch (e) {
-      debugPrint('General error during login: $e');
-      // Check if it's an AuthApiException or similar
       final errorStr = e.toString().toLowerCase();
       if (errorStr.contains('invalid') ||
           errorStr.contains('credentials') ||
@@ -205,6 +250,15 @@ class AuthRepository {
 
   String _parseAuthError(String error) {
     final errorLower = error.toLowerCase();
+    
+    if (errorLower.contains('email not confirmed') ||
+        errorLower.contains('email_not_confirmed') ||
+        errorLower.contains('confirm your email') ||
+        errorLower.contains('email_confirmation') ||
+        errorLower.contains('email_not_verified')) {
+      return 'Please confirm your email address before logging in. Check your inbox for the confirmation email.';
+    }
+    
     if (errorLower.contains('invalid login credentials') ||
         errorLower.contains('invalid email or password') ||
         errorLower.contains('invalid_credentials')) {
@@ -232,4 +286,3 @@ class AuthRepository {
     return error;
   }
 }
-

@@ -87,45 +87,51 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isCheckingAuth: false);
   }
 
-  Future<void> signup({
-    required String email,
-    required String password,
-    required String companyName,
-  }) async {
-    state = state.copyWith(isLoading: true, error: null);
+Future<void> signup({
+  required String email,
+  required String password,
+  required String companyName,
+}) async {
+  state = state.copyWith(isLoading: true, error: null);
 
-    try {
-      final request = SignupRequest(
-        email: email,
-        password: password,
-        companyName: companyName,
-      );
+  try {
+    final request = SignupRequest(
+      email: email,
+      password: password,
+      companyName: companyName,
+    );
 
-      final response = await authRepository.signup(request);
+    final response = await authRepository.signup(request);
 
-      await sharedPrefs.setLoggedIn(true, id: response.userId);
-      await sharedPrefs.storeUserDetails(data: {
-        'id': response.userId,
-        'email': response.email,
-        'company_name': response.companyName,
-      });
+    await sharedPrefs.setLoggedIn(true, id: response.userId);
+    await sharedPrefs.storeUserDetails(data: {
+      'id': response.userId,
+      'email': response.email,
+      'company_name': response.companyName,
+    });
 
-      state = AuthState.authenticated(
-        userId: response.userId,
-        email: response.email,
-        companyName: response.companyName,
-        isVerified: false,
-        status: 'unverified',
-      );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-      rethrow;
-    }
+    state = AuthState.authenticated(
+      userId: response.userId,
+      email: response.email,
+      companyName: response.companyName,
+      isVerified: false,
+      status: 'unverified',
+    );
+  } catch (e) {
+    state = AuthState(
+      isLoading: false,
+      isCheckingAuth: false,
+      isAuthenticated: false,
+      error: e.toString(),
+      userId: null,
+      email: null,
+      companyName: null,
+      isVerified: false,
+      status: null,
+    );
+    rethrow;
   }
-
+}
   Future<void> login({
     required String email,
     required String password,
@@ -193,6 +199,3 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 }
-
-
-

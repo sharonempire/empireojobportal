@@ -59,6 +59,7 @@ dependencies:
   bottom_navy_bar: ^6.1.0
   open_filex: ^4.7.0
   fetch_client: ^1.1.4
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:

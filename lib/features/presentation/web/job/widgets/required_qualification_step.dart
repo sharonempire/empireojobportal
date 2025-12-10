@@ -4,11 +4,12 @@ import 'package:empire_job/features/presentation/widgets/common_single_selection
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/multi_select_dropdown_widget.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
+import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
-import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class RequiredQualificationStep extends ConsumerWidget {
   final JobModel jobModel;
@@ -120,20 +121,38 @@ class RequiredQualificationStep extends ConsumerWidget {
             PrimaryButtonWidget(
               text: 'Submit',
               onPressed: () async {
+                final router = GoRouter.of(context);
+
                 try {
                   await notifier.submitJob();
-                  if (context.mounted) {
-                    context.showSuccessSnackbar('Job created successfully!');
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (context.mounted) {
-                        context.go('/dashBoard');
-                      }
-                    });
-                  }
+                  
+                  Fluttertoast.showToast(
+                    msg: "Job created successfully!",
+                    toastLength: Toast.LENGTH_LONG,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 2,
+                    backgroundColor: Colors.green,
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
+                  
+                  await Future.delayed(const Duration(seconds: 2));
+                  router.go(RouterConsts.dashboardPath);
                 } catch (e) {
-                  if (context.mounted) {
-                    context.showErrorSnackbar(e.toString());
-                  }
+                  final errorMessage = e
+                      .toString()
+                      .replaceAll('Exception: ', '')
+                      .replaceAll('Error: ', '');
+                  
+                  Fluttertoast.showToast(
+                    msg: errorMessage,
+                    toastLength: Toast.LENGTH_LONG,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 3,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
                 }
               },
               backgroundColor: ColorConsts.black,
@@ -152,4 +171,3 @@ class RequiredQualificationStep extends ConsumerWidget {
     );
   }
 }
-

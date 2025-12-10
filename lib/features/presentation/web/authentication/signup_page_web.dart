@@ -2,6 +2,7 @@ import 'package:empire_job/features/application/authentication/controller/auth_c
 import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/images.dart';
 import 'package:empire_job/shared/utils/snackbar_helper.dart';
+import 'package:empire_job/features/data/network/network_calls.dart';
 import 'package:flutter/material.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
@@ -25,6 +26,7 @@ class _SignupPageWebState extends ConsumerState<SignupPageWeb> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isProcessing = false;
 
   @override
   void dispose() {
@@ -35,27 +37,75 @@ class _SignupPageWebState extends ConsumerState<SignupPageWeb> {
     super.dispose();
   }
 
-  Future<void> _handleRegister() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      try {
-        await ref.read(authControllerProvider.notifier).signup(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-              companyName: _companyController.text.trim(),
-            );
+Future<void> _handleRegister() async {
+  if (_formKey.currentState?.validate() ?? false) {
+    if (_isProcessing) return;
+    
+    setState(() {
+      _isProcessing = true;
+    });
+    
+    try {
+      await ref.read(authControllerProvider.notifier).signup(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            companyName: _companyController.text.trim(),
+          );
 
+      debugPrint('Signup successful!');
+      
+      if (mounted) {
+        context.showSuccessSnackbar('Account created successfully! Please login to continue.');
+        
+        await Future.delayed(const Duration(milliseconds: 500));
+        try {
+          final authController = ref.read(authControllerProvider.notifier);
+          await authController.logout();
+        } catch (logoutError) {
+          try {
+            final networkService = ref.read(networkServiceProvider);
+            await networkService.auth.signOut();
+          } catch (e) {
+            debugPrint('Direct logout also failed: $e');
+          }
+        }
+        
+        await Future.delayed(const Duration(milliseconds: 500));
+        
         if (mounted) {
-          context.showSuccessSnackbar('Account created successfully! Please login to continue.');
           context.go(RouterConsts.loginPath);
         }
-      } catch (e) {
-   
+      }
+    } catch (e) {
+
+      if (mounted) {
+        String errorMessage = e.toString();
+                if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.substring(11);
+        }
+        if (errorMessage.startsWith('Error: ')) {
+          errorMessage = errorMessage.substring(7);
+        }
+        if (errorMessage.contains('General error during signup: ')) {
+          errorMessage = errorMessage.split('General error during signup: ').last;
+        }
+        errorMessage = errorMessage.trim();
+                context.showErrorSnackbar(errorMessage);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
       }
     }
   }
+}
 
   void _handleLogin() {
-    context.go(RouterConsts.loginPath);
+    if (!_isProcessing) {
+      context.go(RouterConsts.loginPath);
+    }
   }
 
   @override
@@ -247,7 +297,7 @@ class _SignupPageWebState extends ConsumerState<SignupPageWeb> {
                           ),
                           const SizedBox(height: 36),
                           PrimaryButtonWidget(
-                            text: authState.isLoading
+                            text: _isProcessing || authState.isLoading
                                 ? 'Creating Account...'
                                 : 'Create Account',
                             fontSize: 16,
@@ -255,8 +305,8 @@ class _SignupPageWebState extends ConsumerState<SignupPageWeb> {
                             showShadow: true,
                             showBorder: false,
                             offset: 4,
-                            onPressed: authState.isLoading
-                                ? () {}
+                            onPressed: (_isProcessing || authState.isLoading)
+                                ? (){}
                                 : () {
                                     _handleRegister();
                                   },
