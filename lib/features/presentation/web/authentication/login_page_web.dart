@@ -10,6 +10,7 @@ import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginPageWeb extends ConsumerStatefulWidget {
   const LoginPageWeb({super.key});
@@ -24,6 +25,7 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoggingIn = false;
 
   @override
   void dispose() {
@@ -33,28 +35,30 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
   }
 
   void _showError(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 3,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+      webPosition: "center",
+      webBgColor: "linear-gradient(to right, #dc2626, #ef4444)",
     );
   }
 
   void _showSuccess(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 2,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+      webPosition: "center",
+      webBgColor: "linear-gradient(to right, #16a34a, #22c55e)",
     );
   }
 
@@ -63,37 +67,41 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
       return;
     }
 
+    if (_isLoggingIn) return;
+
+    setState(() {
+      _isLoggingIn = true;
+    });
+
+    final authController = ref.read(authControllerProvider.notifier);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     try {
-      log('Attempting login...');
+      log('Attempting login with email: $email');
+            await authController.login(
+        email: email,
+        password: password,
+      );
+      log('Login successful - no exception thrown');
+            _showSuccess('Login successful!');
       
-      await ref
-          .read(authControllerProvider.notifier)
-          .login(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-
-      if (!mounted) return;
-
-      final authState = ref.read(authControllerProvider);
-      
-      if (authState.isAuthenticated) {
-        log('Login successful');
-        _showSuccess('Login successful!');
-        context.go(RouterConsts.dashboardPath);
-      } else if (authState.error != null && authState.error!.isNotEmpty) {
-        log('Login failed: ${authState.error}');
-        _showError(authState.error!);
-      } else {
-        log('Login failed: Unknown error');
-        _showError('Login failed. Please try again.');
-      }
     } catch (e) {
-      log('Login exception: $e');
-      if (!mounted) return;
-            final authState = ref.read(authControllerProvider);
-      final errorMessage = authState.error ?? e.toString();
+      log('Login exception caught: $e');
+            String errorMessage = e.toString();
+      
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      
+      log('Displaying error: $errorMessage');
       _showError(errorMessage);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoggingIn = false;
+        });
+      }
     }
   }
 
@@ -268,13 +276,13 @@ class _LoginPageWebState extends ConsumerState<LoginPageWeb> {
                       ),
                       const SizedBox(height: 36),
                       PrimaryButtonWidget(
-                        text: authState.isLoading ? 'Logging in...' : 'Login',
+                        text: _isLoggingIn ? 'Logging in...' : 'Login',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         showShadow: true,
                         showBorder: false,
                         offset: 4,
-                        onPressed: authState.isLoading ? () {} : _handleLogin,
+                        onPressed: _isLoggingIn ? (){} : _handleLogin,
                       ),
                       const SizedBox(height: 48),
                       Row(
