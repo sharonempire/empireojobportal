@@ -195,20 +195,81 @@ class AuthRepository {
   Future<bool> isUserVerified() async {
     try {
       final user = getCurrentUser();
-      if (user == null) return false;
+      if (user == null) {
+        debugPrint('isUserVerified: No current user');
+        return false;
+      }
 
-      final profiles = await networkService.pull(
-        table: SupabaseTables.jobProfiles,
-        filters: {'profile_id': user.id},
-        limit: 1,
-      );
+      final userEmail = user.email?.trim().toLowerCase();
+      debugPrint('isUserVerified: Querying job_profiles table for profile_id=${user.id}, email=$userEmail');
+      
+      Map<String, dynamic>? profile;
+      
+      try {
+        profile = await networkService.supabase
+            .from(SupabaseTables.jobProfiles)
+            .select()
+            .eq('profile_id', user.id)
+            .maybeSingle();
+        
+        if (profile != null) {
+          debugPrint('isUserVerified: Found profile by profile_id: $profile');
+        } else {
+          debugPrint('isUserVerified: No profile found by profile_id, trying email...');
+          
+          if (userEmail != null && userEmail.isNotEmpty) {
+            profile = await networkService.supabase
+                .from(SupabaseTables.jobProfiles)
+                .select()
+                .eq('email_address', userEmail)
+                .maybeSingle();
+            
+            if (profile != null) {
+              debugPrint('isUserVerified: Found profile by email: $profile');
+              debugPrint('isUserVerified: Profile profile_id in DB: ${profile['profile_id']}, Auth user ID: ${user.id}');
+              
+              if (profile['profile_id']?.toString() != user.id) {
+                debugPrint('isUserVerified: profile_id mismatch! Updating profile_id in database...');
+                try {
+                  await networkService.supabase
+                      .from(SupabaseTables.jobProfiles)
+                      .update({'profile_id': user.id})
+                      .eq('email_address', userEmail);
+                  debugPrint('isUserVerified: Successfully updated profile_id to match auth user ID');
+                  profile = await networkService.supabase
+                      .from(SupabaseTables.jobProfiles)
+                      .select()
+                      .eq('profile_id', user.id)
+                      .maybeSingle();
+                } catch (e) {
+                  debugPrint('isUserVerified: Error updating profile_id: $e');
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('isUserVerified: Direct query error: $e');
+      }
 
-      if (profiles.isEmpty) return false;
+      if (profile == null) {
+        debugPrint('isUserVerified: No profile found for user ${user.id} (email: $userEmail)');
+        return false;
+      }
 
-      final status = profiles.first['status'] as String?;
-      return status == 'verified';
-    } catch (e) {
+      final status = profile['status'] as String?;
+      debugPrint('isUserVerified: Found status "$status" for user ${user.id}');
+      if (status == null) {
+        debugPrint('isUserVerified: Status is null');
+        return false;
+      }
+      final normalizedStatus = status.trim().toLowerCase();
+      final isVerified = normalizedStatus == 'verified';
+      debugPrint('isUserVerified: Normalized status "$normalizedStatus", isVerified: $isVerified');
+      return isVerified;
+    } catch (e, stackTrace) {
       debugPrint('Error checking verification status: $e');
+      debugPrint('Stack trace: $stackTrace');
       return false;
     }
   }

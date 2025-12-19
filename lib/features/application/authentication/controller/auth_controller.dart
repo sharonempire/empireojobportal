@@ -30,12 +30,17 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> refreshVerificationStatus() async {
     if (state.isAuthenticated && state.userId != null) {
+      debugPrint('refreshVerificationStatus: Refreshing for user ${state.userId}');
       final isVerified = await authRepository.isUserVerified();
       final status = await authRepository.getUserStatus();
+      debugPrint('refreshVerificationStatus: isVerified=$isVerified, status=$status');
       state = state.copyWith(
         isVerified: isVerified,
         status: status,
       );
+      debugPrint('refreshVerificationStatus: State updated, new isVerified=${state.isVerified}');
+    } else {
+      debugPrint('refreshVerificationStatus: User not authenticated or userId is null');
     }
   }
 
