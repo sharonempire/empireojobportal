@@ -10,6 +10,7 @@ import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/shared/utils/snackbar_helper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,10 +24,51 @@ class DashboardPageWeb extends ConsumerStatefulWidget {
 
 class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
   bool _hasLoadedData = false;
+  bool _isRefreshing = false;
+  bool _hasRefreshedOnLoad = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      debugPrint('Dashboard initState: Starting verification refresh');
+      await _refreshVerificationIfNeeded(force: true);
+    });
+  }
+
+  Future<void> _refreshVerificationIfNeeded({bool force = false}) async {
+    if (_isRefreshing) {
+      debugPrint('_refreshVerificationIfNeeded: Already refreshing, skipping');
+      return;
+    }
+    
+    final authState = ref.read(authControllerProvider);
+    debugPrint('_refreshVerificationIfNeeded: force=$force, isAuthenticated=${authState.isAuthenticated}, userId=${authState.userId}, currentIsVerified=${authState.isVerified}');
+    
+    if (authState.isAuthenticated && authState.userId != null) {
+      if (force && !_hasRefreshedOnLoad) {
+        _hasRefreshedOnLoad = true;
+        debugPrint('_refreshVerificationIfNeeded: Force refresh on page load');
+      } else if (!force && authState.isVerified) {
+        debugPrint('_refreshVerificationIfNeeded: Skipping refresh - already verified');
+        return;
+      }
+      
+      _isRefreshing = true;
+      debugPrint('_refreshVerificationIfNeeded: Starting refresh...');
+      try {
+        await ref.read(authControllerProvider.notifier).refreshVerificationStatus();
+        debugPrint('_refreshVerificationIfNeeded: Refresh completed');
+      } catch (e) {
+        debugPrint('Error refreshing verification status: $e');
+      } finally {
+        if (mounted) {
+          _isRefreshing = false;
+        }
+      }
+    } else {
+      debugPrint('_refreshVerificationIfNeeded: User not authenticated or userId is null');
+    }
   }
 
   void _loadDataIfNeeded(WidgetRef ref) {
@@ -44,11 +86,15 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
-    final jobState = ref.watch(jobProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDataIfNeeded(ref);
+      if (!_hasRefreshedOnLoad) {
+        _refreshVerificationIfNeeded(force: true);
+      }
     });
+    
+    debugPrint('Dashboard build: isVerified=${authState.isVerified}, status=${authState.status}, isAuthenticated=${authState.isAuthenticated}, userId=${authState.userId}');
 
     // if ( (jobState.isLoadingJobs && jobState.jobs.isEmpty)) {
     //   return Scaffold(

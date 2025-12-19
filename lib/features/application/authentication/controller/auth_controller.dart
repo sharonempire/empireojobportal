@@ -6,6 +6,7 @@ import 'package:empire_job/features/data/authentication/models/auth_models.dart'
 import 'package:empire_job/features/data/storage/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
@@ -20,6 +21,7 @@ final authControllerProvider =
 class AuthController extends StateNotifier<AuthState> {
   final AuthRepository authRepository;
   final SharedPrefsHelper sharedPrefs;
+  RealtimeChannel? _verificationChannel;
 
   AuthController({
     required this.authRepository,
@@ -28,14 +30,61 @@ class AuthController extends StateNotifier<AuthState> {
     _checkAuthStatus();
   }
 
+  void _setupVerificationRealtimeSubscription() {
+    // Clean up existing subscription if any
+    _cleanupVerificationSubscription();
+
+    if (state.isAuthenticated && state.userId != null) {
+      debugPrint('Setting up real-time subscription for verification status');
+      
+      _verificationChannel = authRepository.subscribeToJobProfilesRealtime(
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'profile_id',
+          value: state.userId,
+        ),
+        onUpdate: (payload) {
+          debugPrint('Real-time update received for job_profiles: ${payload.newRecord}');
+          final newStatus = payload.newRecord['status'] as String?;
+          debugPrint('New status from real-time: $newStatus');
+          
+          // Refresh verification status when update is received
+          refreshVerificationStatus();
+        },
+        onInsert: (payload) {
+          debugPrint('Real-time insert received for job_profiles: ${payload.newRecord}');
+          // If a new profile is inserted for this user, refresh status
+          if (payload.newRecord['profile_id'] == state.userId) {
+            refreshVerificationStatus();
+          }
+        },
+      );
+      
+      debugPrint('Real-time subscription set up successfully');
+    }
+  }
+
+  void _cleanupVerificationSubscription() {
+    if (_verificationChannel != null) {
+      debugPrint('Cleaning up real-time verification subscription');
+      _verificationChannel?.unsubscribe();
+      _verificationChannel = null;
+    }
+  }
+
   Future<void> refreshVerificationStatus() async {
     if (state.isAuthenticated && state.userId != null) {
+      debugPrint('refreshVerificationStatus: Refreshing for user ${state.userId}');
       final isVerified = await authRepository.isUserVerified();
       final status = await authRepository.getUserStatus();
+      debugPrint('refreshVerificationStatus: isVerified=$isVerified, status=$status');
       state = state.copyWith(
         isVerified: isVerified,
         status: status,
       );
+      debugPrint('refreshVerificationStatus: State updated, new isVerified=${state.isVerified}');
+    } else {
+      debugPrint('refreshVerificationStatus: User not authenticated or userId is null');
     }
   }
 
@@ -75,6 +124,9 @@ class AuthController extends StateNotifier<AuthState> {
             'email': user.email ?? '',
           });
         }
+        
+        // Set up real-time subscription for verification status
+        _setupVerificationRealtimeSubscription();
         return;
       }
     }
@@ -117,6 +169,9 @@ Future<void> signup({
       isVerified: false,
       status: 'unverified',
     );
+    
+    // Set up real-time subscription for verification status
+    _setupVerificationRealtimeSubscription();
   } catch (e) {
     state = AuthState(
       isLoading: false,
@@ -163,6 +218,9 @@ Future<void> signup({
         isVerified: isVerified,
         status: status,
       );
+      
+      // Set up real-time subscription for verification status
+      _setupVerificationRealtimeSubscription();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -180,6 +238,9 @@ Future<void> signup({
     state = state.copyWith(isLoading: true);
 
     try {
+      // Clean up real-time subscription before logout
+      _cleanupVerificationSubscription();
+      
       await authRepository.logout();
       await sharedPrefs.setLoggedIn(false, id: '');
       await sharedPrefs.prefs.remove(SharedPrefsHelper.userDetails);
@@ -197,5 +258,11 @@ Future<void> signup({
       );
       rethrow;
     }
+  }
+  
+  @override
+  void dispose() {
+    _cleanupVerificationSubscription();
+    super.dispose();
   }
 }
