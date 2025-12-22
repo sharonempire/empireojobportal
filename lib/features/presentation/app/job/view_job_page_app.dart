@@ -5,6 +5,7 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
+import 'package:empire_job/shared/widgets/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -58,9 +59,7 @@ class _ViewJobPageAppState extends ConsumerState<ViewJobPageApp> {
       ),
       body: SafeArea(
         child: jobState.isLoadingJobs
-            ? const Center(
-                child: CircularProgressIndicator(color: ColorConsts.black),
-              )
+            ? const ViewJobPageShimmer()
             : RefreshIndicator(
                 onRefresh: () async {
                   await ref.read(jobProvider.notifier).loadJobs();

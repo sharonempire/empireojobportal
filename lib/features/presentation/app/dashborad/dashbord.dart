@@ -1,3 +1,4 @@
+import 'package:empire_job/features/application/applied_job/controllers/applied_job_provider.dart';
 import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
@@ -6,6 +7,7 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
+import 'package:empire_job/shared/widgets/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,9 +23,13 @@ class _DashbordState extends ConsumerState<Dashbord> {
   @override
   void initState() {
     super.initState();
-    // Load jobs when dashboard is opened
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(jobProvider.notifier).loadJobs();
+    // Load jobs and applied jobs when dashboard is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(jobProvider.notifier).loadJobs();
+      // Load applied jobs after jobs are loaded
+      await ref
+          .read(appliedJobProvider.notifier)
+          .loadAppliedJobs(waitForJobs: true);
     });
   }
 
@@ -45,14 +51,14 @@ class _DashbordState extends ConsumerState<Dashbord> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final jobState = ref.watch(jobProvider);
+    final appliedJobState = ref.watch(appliedJobProvider);
 
     // Calculate stats from jobs
     final totalJobs = jobState.jobs.length;
     final activeJobs = jobState.jobs
         .where((job) => job.status == 'active')
         .length;
-    final totalApplications =
-        jobState.jobs.length * 10; // Placeholder calculation
+    final totalApplications = appliedJobState.appliedJobs.length;
 
     return Scaffold(
       backgroundColor: ColorConsts.lightGreyBackground,
@@ -67,12 +73,11 @@ class _DashbordState extends ConsumerState<Dashbord> {
       ),
       body: SafeArea(
         child: jobState.isLoadingJobs
-            ? const Center(
-                child: CircularProgressIndicator(color: ColorConsts.black),
-              )
+            ? const DashboardShimmer()
             : RefreshIndicator(
                 onRefresh: () async {
                   await ref.read(jobProvider.notifier).loadJobs();
+                  await ref.read(appliedJobProvider.notifier).loadAppliedJobs();
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -216,33 +221,72 @@ class _DashbordState extends ConsumerState<Dashbord> {
   }
 
   Widget _buildRecentApplications() {
-    // Placeholder data - in real app, this would come from an applications provider
-    final applications = [
-      {
-        'name': 'Anjana Priya',
-        'job': 'Software Developer',
-        'date': '29 Nov 2025',
-        'status': 'Shortlisted',
-      },
-      {
-        'name': 'Anjana Priya',
-        'job': 'Software Developer',
-        'date': '29 Nov 2025',
-        'status': 'Applied',
-      },
-      {
-        'name': 'Anjana Priya',
-        'job': 'Software Developer',
-        'date': '29 Nov 2025',
-        'status': 'Rejected',
-      },
-      {
-        'name': 'Anjana Priya',
-        'job': 'Software Developer',
-        'date': '29 Nov 2025',
-        'status': 'Shortlisted',
-      },
-    ];
+    final appliedJobState = ref.watch(appliedJobProvider);
+    final applications = appliedJobState.appliedJobs;
+
+    if (appliedJobState.isLoading) {
+      return Container(
+        padding: EdgeInsets.all(context.rSpacing(16)),
+        decoration: BoxDecoration(
+          color: ColorConsts.white,
+          borderRadius: BorderRadius.circular(context.rSpacing(8)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ShimmerBox(
+              width: context.rSpacing(150),
+              height: context.rSpacing(16),
+              borderRadius: 4,
+            ),
+            SizedBox(height: context.rSpacing(16)),
+            // Shimmer rows
+            ...List.generate(5, (index) => Padding(
+              padding: EdgeInsets.only(bottom: context.rSpacing(12)),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: ShimmerBox(
+                      width: double.infinity,
+                      height: context.rSpacing(12),
+                      borderRadius: 4,
+                    ),
+                  ),
+                  SizedBox(width: context.rSpacing(8)),
+                  Expanded(
+                    flex: 3,
+                    child: ShimmerBox(
+                      width: double.infinity,
+                      height: context.rSpacing(12),
+                      borderRadius: 4,
+                    ),
+                  ),
+                  SizedBox(width: context.rSpacing(8)),
+                  Expanded(
+                    flex: 2,
+                    child: ShimmerBox(
+                      width: double.infinity,
+                      height: context.rSpacing(12),
+                      borderRadius: 4,
+                    ),
+                  ),
+                  SizedBox(width: context.rSpacing(8)),
+                  Expanded(
+                    flex: 2,
+                    child: ShimmerBox(
+                      width: double.infinity,
+                      height: context.rSpacing(12),
+                      borderRadius: 4,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          ],
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -312,24 +356,68 @@ class _DashbordState extends ConsumerState<Dashbord> {
               ),
             ),
             // Table Rows
-            ...applications.map((app) => _buildApplicationRow(app)),
+            if (appliedJobState.isLoading)
+              Padding(
+                padding: EdgeInsets.all(context.rSpacing(20)),
+                child: const Center(
+                  child: CircularProgressIndicator(color: ColorConsts.black),
+                ),
+              )
+            else if (applications.isEmpty)
+              Padding(
+                padding: EdgeInsets.all(context.rSpacing(20)),
+                child: Center(
+                  child: CustomText(
+                    text: 'No applications yet',
+                    fontSize: context.rFontSize(12),
+                    color: ColorConsts.textColor,
+                  ),
+                ),
+              )
+            else
+              ...applications.take(10).map((app) => _buildApplicationRow(app)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildApplicationRow(Map<String, String> app) {
+  Widget _buildApplicationRow(dynamic app) {
+    // Handle both Map and AppliedJobModel
+    String candidateName;
+    String jobTitle;
+    String appliedDate;
+    String status;
+
+    if (app is Map<String, dynamic>) {
+      candidateName = app['name']?.toString() ?? 'Unknown';
+      jobTitle = app['job']?.toString() ?? 'Unknown Job';
+      appliedDate = app['date']?.toString() ?? 'N/A';
+      status = app['status']?.toString() ?? 'Applied';
+    } else {
+      // It's an AppliedJobModel
+      candidateName = app.candidateName;
+      jobTitle = app.jobTitle;
+      appliedDate = app.formattedAppliedDate;
+      status = app.displayStatus;
+    }
+
     Color statusColor;
-    switch (app['status']) {
-      case 'Shortlisted':
+    switch (status.toLowerCase()) {
+      case 'shortlisted':
         statusColor = ColorConsts.colorGreen;
         break;
-      case 'Applied':
+      case 'applied':
         statusColor = ColorConsts.blue;
         break;
-      case 'Rejected':
+      case 'rejected':
         statusColor = ColorConsts.textColorRed;
+        break;
+      case 'verified':
+        statusColor = ColorConsts.colorGreen;
+        break;
+      case 'pending':
+        statusColor = ColorConsts.blue;
         break;
       default:
         statusColor = ColorConsts.textColor;
@@ -347,7 +435,7 @@ class _DashbordState extends ConsumerState<Dashbord> {
           Expanded(
             flex: 3,
             child: CustomText(
-              text: app['name']!,
+              text: candidateName,
               fontSize: context.rFontSize(8),
               color: ColorConsts.black,
             ),
@@ -355,7 +443,7 @@ class _DashbordState extends ConsumerState<Dashbord> {
           Expanded(
             flex: 3,
             child: CustomText(
-              text: app['job']!,
+              text: jobTitle,
               fontSize: context.rFontSize(8),
               color: ColorConsts.black,
             ),
@@ -363,7 +451,7 @@ class _DashbordState extends ConsumerState<Dashbord> {
           Expanded(
             flex: 2,
             child: CustomText(
-              text: app['date']!,
+              text: appliedDate,
               fontSize: context.rFontSize(8),
               color: ColorConsts.textColor,
             ),
@@ -371,7 +459,7 @@ class _DashbordState extends ConsumerState<Dashbord> {
           Expanded(
             flex: 2,
             child: CustomText(
-              text: app['status']!,
+              text: status,
               fontSize: context.rFontSize(8),
               color: statusColor,
             ),
