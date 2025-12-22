@@ -11,10 +11,16 @@ final routerAuthProvider = StreamProvider<bool>((ref) {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: RouterConsts.loginPath,
+    initialLocation: RouterConsts.splashScreenPath,
     routes: RouterConsts.routes,
     redirect: (context, state) {
       final authState = ref.read(authControllerProvider);
+      final isSplashPage = state.matchedLocation == RouterConsts.splashScreenPath;
+
+      // Allow splash screen to handle navigation
+      if (isSplashPage) {
+        return null;
+      }
 
       if (authState.isCheckingAuth) {
         return null;
@@ -26,9 +32,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isAuthenticated && (isLoginPage || isSignupPage)) {
         return RouterConsts.dashboardPath;
       }
-      if (!isAuthenticated && !isLoginPage && !isSignupPage) {
+      if (!isAuthenticated && !isLoginPage && !isSignupPage && !isSplashPage) {
         return RouterConsts.loginPath;
       }
+      return null;
     },
     debugLogDiagnostics: true,
   );

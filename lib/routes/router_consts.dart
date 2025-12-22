@@ -7,6 +7,7 @@ import 'package:empire_job/features/presentation/app/notification/notification.d
 import 'package:empire_job/features/presentation/app/settings/change_password.dart';
 import 'package:empire_job/features/presentation/app/settings/company_settings.dart';
 import 'package:empire_job/features/presentation/app/settings/settings_page_app.dart';
+import 'package:empire_job/features/presentation/app/splash/splash_screen.dart';
 import 'package:empire_job/features/presentation/web/authentication/login_page_web.dart';
 import 'package:empire_job/features/presentation/web/authentication/signup_page_web.dart';
 import 'package:empire_job/features/presentation/web/dashboard/dashboard_page_web.dart';
@@ -51,6 +52,13 @@ class RouterConsts {
   static const String splashName = 'splash';
 
   static final List<RouteModel> routeModels = List.unmodifiable([
+    // Splash Screen Route
+    RouteModel(
+      path: splashScreenPath,
+      name: splashName,
+      appBuilder: (context, state) => const SplashScreen(),
+      webBuilder: (context, state) => const SplashScreen(),
+    ),
     // Authentication Routes
     RouteModel(
       path: loginPath,

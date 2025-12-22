@@ -207,6 +207,11 @@ Future<void> signup({
         'email': response.email,
         'company_name': response.companyName,
       });
+      // Save credentials for auto-login
+      await sharedPrefs.saveUserCredentials(
+        email: email,
+        password: password,
+      );
 
       final isVerified = await authRepository.isUserVerified();
       final status = await authRepository.getUserStatus();
@@ -245,6 +250,7 @@ Future<void> signup({
       await sharedPrefs.setLoggedIn(false, id: '');
       await sharedPrefs.prefs.remove(SharedPrefsHelper.userDetails);
       await sharedPrefs.prefs.remove(SharedPrefsHelper.userId);
+      await sharedPrefs.clearCredentials();
 
       state = AuthState(
         isLoading: false,

@@ -9,6 +9,8 @@ class SharedPrefsHelper {
   static const userDetails = "user_details";
   static const _keyHasCompletedOnboarding = "has_completed_onboarding";
   static const _keyFinderType = "finder_type";
+  static const _keyUserEmail = "user_email";
+  static const _keyUserPassword = "user_password";
 
   final SharedPreferences prefs;
 
@@ -55,6 +57,35 @@ class SharedPrefsHelper {
     } catch (error) {
       return 'course';
     }
+  }
+
+  Future<void> saveUserCredentials({
+    required String email,
+    required String password,
+  }) async {
+    await prefs.setString(_keyUserEmail, email);
+    await prefs.setString(_keyUserPassword, password);
+  }
+
+  String? getUserEmail() {
+    try {
+      return prefs.getString(_keyUserEmail);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  String? getUserPassword() {
+    try {
+      return prefs.getString(_keyUserPassword);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  Future<void> clearCredentials() async {
+    await prefs.remove(_keyUserEmail);
+    await prefs.remove(_keyUserPassword);
   }
 
   Future<void> clear() async {

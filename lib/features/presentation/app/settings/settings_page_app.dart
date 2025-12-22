@@ -4,6 +4,7 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
+import 'package:empire_job/shared/widgets/shimmer_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,7 +58,7 @@ class _SettingsPageAppState extends ConsumerState<SettingsPageApp> {
       try {
         await ref.read(authControllerProvider.notifier).logout();
         if (mounted) {
-          context.goNamed('login');
+          context.goNamed('splash');
         }
       } catch (e) {
         if (mounted) {
@@ -84,7 +85,9 @@ class _SettingsPageAppState extends ConsumerState<SettingsPageApp> {
         onBackPressed: () => context.goNamed('dashboard'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: authState.isCheckingAuth
+            ? const SettingsPageShimmer()
+            : SingleChildScrollView(
           padding: EdgeInsets.all(context.rSpacing(16)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
