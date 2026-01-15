@@ -1,3 +1,4 @@
+import 'package:empire_job/features/application/applied_job/controllers/applied_job_provider.dart';
 import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
@@ -71,14 +72,17 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
     }
   }
 
-  void _loadDataIfNeeded(WidgetRef ref) {
+  Future<void> _loadDataIfNeeded(WidgetRef ref) async {
     final authState = ref.read(authControllerProvider);
     if (!authState.isCheckingAuth &&
         authState.isAuthenticated &&
         authState.userId != null &&
         !_hasLoadedData) {
       _hasLoadedData = true;
-      ref.read(jobProvider.notifier).loadJobs();
+      await ref.read(jobProvider.notifier).loadJobs();
+      await ref.read(appliedJobProvider.notifier).loadAppliedJobs(
+            waitForJobs: true,
+          );
       ref.read(settingsProvider.notifier).loadCompanyData();
     }
   }
@@ -87,8 +91,8 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadDataIfNeeded(ref);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadDataIfNeeded(ref);
       if (!_hasRefreshedOnLoad) {
         _refreshVerificationIfNeeded(force: true);
       }
@@ -185,6 +189,7 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
 
   Widget _buildDashboard(BuildContext context, WidgetRef ref) {
     final jobState = ref.watch(jobProvider);
+    final appliedJobState = ref.watch(appliedJobProvider);
 
     final totalJobs = jobState.jobs.length;
     final activeJobs = jobState.jobs.where((job) {
@@ -194,6 +199,7 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
     final closedJobs = jobState.jobs.where((job) {
       return job.status.toLowerCase() == 'closed';
     }).length;
+    final totalApplications = appliedJobState.appliedJobs.length;
 
     final latestJobs = jobState.jobs.take(10).toList();
 
@@ -297,7 +303,7 @@ class _DashboardPageWebState extends ConsumerState<DashboardPageWeb> {
                             child: StatsCard(
                               icon: Icons.trending_up,
                               title: 'Application Received',
-                              value: '0',
+                              value: totalApplications.toString(),
                             ),
                           ),
                           const SizedBox(width: 30),

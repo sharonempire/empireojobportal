@@ -1,6 +1,8 @@
+import 'package:empire_job/features/application/countries/controllers/countries_provider.dart';
 import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
 import 'package:empire_job/features/presentation/widgets/common_single_selection_dropdown_widget.dart';
+import 'package:empire_job/features/presentation/widgets/common_textfield_widget.dart';
 import 'package:empire_job/features/presentation/widgets/custom_text.dart';
 import 'package:empire_job/features/presentation/widgets/primary_button_widget.dart';
 import 'package:empire_job/features/presentation/widgets/range_slider_widget.dart';
@@ -8,7 +10,7 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LocationSalaryStep extends ConsumerWidget {
+class LocationSalaryStep extends ConsumerStatefulWidget {
   final JobModel jobModel;
   final JobNotifier notifier;
 
@@ -19,7 +21,52 @@ class LocationSalaryStep extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LocationSalaryStep> createState() => _LocationSalaryStepState();
+}
+
+class _LocationSalaryStepState extends ConsumerState<LocationSalaryStep> {
+  late TextEditingController _stateController;
+  late TextEditingController _cityController;
+  bool _hasLoadedCountries = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _stateController = TextEditingController(text: widget.jobModel.stateProvince);
+    _cityController = TextEditingController(text: widget.jobModel.city);
+    
+    // Load countries when widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCountriesIfNeeded();
+    });
+  }
+
+
+  void _loadCountriesIfNeeded() {
+    final countriesState = ref.read(countriesProvider);
+    if (countriesState.countries.isEmpty && !countriesState.isLoading && !_hasLoadedCountries) {
+      _hasLoadedCountries = true;
+      ref.read(countriesProvider.notifier).loadCountries();
+    }
+  }
+
+  @override
+  void dispose() {
+    _stateController.dispose();
+    _cityController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final countriesState = ref.watch(countriesProvider);
+    
+    // Try to load countries if not loaded
+    if (!_hasLoadedCountries && !countriesState.isLoading && countriesState.countries.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadCountriesIfNeeded();
+      });
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -45,24 +92,32 @@ class LocationSalaryStep extends ConsumerWidget {
                     color: context.themeDark,
                   ),
                   const SizedBox(height: 8),
-                  SingleSelectDropdownWidget(
-                    options: const [
-                      'United States',
-                      'Canada',
-                      'United Kingdom',
-                      'India',
-                      'Australia',
-                      'Germany',
-                      'France',
-                      'Other',
-                    ],
-                    initialSelected: jobModel.country,
-                    hintText: 'Select country',
-                    height: 40,
-                    showShadow: false,
-                    onChanged: (value) => notifier.setCountry(value),
-                    borderRadius: 100,
-                  ),
+                  countriesState.isLoading
+                      ? Container(
+                          height: 40,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: context.themeBorderLightGrey),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                        )
+                      : SingleSelectDropdownWidget(
+                          options: countriesState.countries.isNotEmpty
+                              ? countriesState.countries
+                              : const ['Loading...'],
+                          initialSelected: widget.jobModel.country,
+                          hintText: 'Select country',
+                          height: 40,
+                          showShadow: false,
+                          onChanged: (value) => widget.notifier.setCountry(value),
+                          borderRadius: 100,
+                        ),
                 ],
               ),
             ),
@@ -79,21 +134,15 @@ class LocationSalaryStep extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  SingleSelectDropdownWidget(
-                    options: const [
-                      'California',
-                      'New York',
-                      'Texas',
-                      'Florida',
-                      'Illinois',
-                      'Other',
-                    ],
-                    initialSelected: jobModel.stateProvince,
-                    hintText: 'Select state/province',
+                  CommonTextfieldWidget(
+                    controller: _stateController,
+                    hintText: 'Enter state/province/region',
                     height: 40,
-                    showShadow: false,
-                    onChanged: (value) => notifier.setStateProvince(value),
                     borderRadius: 100,
+                    useBorderOnly: true,
+                    borderColor: context.themeBorderLightGrey,
+                    fillColor: Colors.transparent,
+                    onChanged: (value) => widget.notifier.setStateProvince(value),
                   ),
                 ],
               ),
@@ -110,22 +159,15 @@ class LocationSalaryStep extends ConsumerWidget {
                     color: context.themeDark,
                   ),
                   const SizedBox(height: 8),
-                  SingleSelectDropdownWidget(
-                    options: const [
-                      'New York',
-                      'Los Angeles',
-                      'Chicago',
-                      'Houston',
-                      'Phoenix',
-                      'Philadelphia',
-                      'Other',
-                    ],
-                    initialSelected: jobModel.city,
-                    hintText: 'Select city',
+                  CommonTextfieldWidget(
+                    controller: _cityController,
+                    hintText: 'Enter city',
                     height: 40,
-                    showShadow: false,
-                    onChanged: (value) => notifier.setCity(value),
                     borderRadius: 100,
+                    useBorderOnly: true,
+                    borderColor: context.themeBorderLightGrey,
+                    fillColor: Colors.transparent,
+                    onChanged: (value) => widget.notifier.setCity(value),
                   ),
                 ],
               ),
@@ -148,13 +190,13 @@ class LocationSalaryStep extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 40),
             child: RangeSliderWidget(
-              initialMin: jobModel.minSalary,
-              initialMax: jobModel.maxSalary,
+              initialMin: widget.jobModel.minSalary,
+              initialMax: widget.jobModel.maxSalary,
               minValue: 0,
               maxValue: 110000,
               label: 'Salary',
               onChanged: (values) {
-                notifier.setSalaryRange(values.start, values.end);
+                widget.notifier.setSalaryRange(values.start, values.end);
               },
             ),
           ),
@@ -165,7 +207,7 @@ class LocationSalaryStep extends ConsumerWidget {
           children: [
             PrimaryButtonWidget(
               text: 'Previous',
-              onPressed: () => notifier.previousStep(),
+              onPressed: () => widget.notifier.previousStep(),
               backgroundColor: context.themeWhite,
               textColor: context.themeDark,
               height: 40,
@@ -180,7 +222,7 @@ class LocationSalaryStep extends ConsumerWidget {
             const SizedBox(width: 16),
             PrimaryButtonWidget(
               text: 'Next',
-              onPressed: () => notifier.nextStep(),
+              onPressed: () => widget.notifier.nextStep(),
               backgroundColor: ColorConsts.black,
               textColor: ColorConsts.white,
               height: 40,

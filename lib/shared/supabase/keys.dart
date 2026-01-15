@@ -13,6 +13,7 @@ class SupabaseTables {
   static const String jobProfiles = "job_profiles";
   static const String jobs = "jobs";
   static const String appliedJobs = "applied_jobs";
+  static const String countries = "countries";
 }
 
 class SupabaseBuckets {

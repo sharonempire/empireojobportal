@@ -1,3 +1,4 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/application/settings/controllers/settings_controller.dart';
 import 'package:empire_job/features/application/settings/models/settings_state.dart';
 import 'package:empire_job/features/presentation/web/settings/widgets/settings_item_card_widget.dart';
@@ -24,8 +25,20 @@ class _CompanySectionWidgetState extends ConsumerState<CompanySectionWidget> {
     super.initState();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(settingsProvider.notifier).loadCompanyData();
+      _loadDataIfNeeded();
     });
+  }
+
+  Future<void> _loadDataIfNeeded() async {
+    final authState = ref.read(authControllerProvider);
+    if (authState.isCheckingAuth || !authState.isAuthenticated || authState.userId == null) {
+      return;
+    }
+
+    final settingsState = ref.read(settingsProvider);
+    if (!settingsState.isLoadingCompanyData) {
+      await ref.read(settingsProvider.notifier).loadCompanyData();
+    }
   }
 
   @override

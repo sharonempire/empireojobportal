@@ -163,6 +163,10 @@ class JobNotifier extends StateNotifier<JobState> {
         throw 'User not authenticated. Please log in to create a job.';
       }
 
+      if (!authState.isVerified) {
+        throw 'Your account must be verified to create jobs. Please wait for admin verification.';
+      }
+
       final jobRepository = ref.read(jobRepositoryProvider);
 
       if (state.currentJob.jobTitle == null ||
@@ -187,7 +191,9 @@ class JobNotifier extends StateNotifier<JobState> {
         jobModel: state.currentJob,
         status: 'pending',
       );
+      
       resetJob();
+      
       await loadJobs();
       
       state = state.copyWith(isSubmittingJob: false);

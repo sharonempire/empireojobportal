@@ -9,8 +9,8 @@ import 'package:empire_job/features/presentation/web/job/widgets/location_salary
 import 'package:empire_job/features/presentation/web/job/widgets/job_description_step.dart';
 import 'package:empire_job/features/presentation/web/job/widgets/required_qualification_step.dart';
 import 'package:empire_job/features/presentation/web/job/widgets/progress_indicator_widget.dart';
+import 'package:empire_job/routes/router_consts.dart';
 import 'package:empire_job/shared/consts/color_consts.dart';
-import 'package:empire_job/shared/utils/snackbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,23 +26,7 @@ class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkVerificationStatus();
-    });
-  }
 
-  void _checkVerificationStatus() {
-    final authState = ref.read(authControllerProvider);
-    if (!authState.isVerified) {
-      context.showErrorSnackbar(
-        'Your account must be verified to create jobs. Please wait for admin verification.',
-      );
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          context.go('/dashBoard');
-        }
-      });
-    }
   }
 
   @override
@@ -53,7 +37,16 @@ class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
     final jobModel = jobState.currentJob;
     final currentStep = jobModel.currentStep;
 
-    if (!authState.isVerified) {
+   
+    if (authState.isCheckingAuth) {
+      return Scaffold(
+        backgroundColor: context.themeScaffoldCourse,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    if (authState.isAuthenticated && !authState.isVerified) {
       return Scaffold(
         backgroundColor: context.themeScaffoldCourse,
         body: Column(
@@ -101,7 +94,7 @@ class _CreateJobPageWebState extends ConsumerState<CreateJobPageWeb> {
                       const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: () {
-                          context.go('/dashBoard');
+                          context.go(RouterConsts.dashboardPath);
                         },
                         child: const CustomText(
                           text: 'Go to Dashboard',
