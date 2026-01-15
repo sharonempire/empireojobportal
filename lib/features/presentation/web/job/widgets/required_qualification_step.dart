@@ -121,8 +121,6 @@ class RequiredQualificationStep extends ConsumerWidget {
             PrimaryButtonWidget(
               text: 'Submit',
               onPressed: () async {
-                final router = GoRouter.of(context);
-
                 try {
                   await notifier.submitJob();
                   
@@ -137,7 +135,9 @@ class RequiredQualificationStep extends ConsumerWidget {
                   );
                   
                   await Future.delayed(const Duration(seconds: 2));
-                  router.go(RouterConsts.dashboardPath);
+                  if (context.mounted) {
+                    context.go(RouterConsts.dashboardPath);
+                  }
                 } catch (e) {
                   final errorMessage = e
                       .toString()

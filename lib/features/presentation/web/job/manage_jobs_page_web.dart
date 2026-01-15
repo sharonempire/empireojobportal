@@ -1,3 +1,4 @@
+import 'package:empire_job/features/application/authentication/controller/auth_controller.dart';
 import 'package:empire_job/features/application/job/controllers/job_provider.dart';
 import 'package:empire_job/features/application/job/models/job_model.dart';
 
@@ -18,17 +19,46 @@ class ManageJobsPageWeb extends ConsumerStatefulWidget {
 }
 
 class _ManageJobsPageWebState extends ConsumerState<ManageJobsPageWeb> {
+  bool _hasLoadedData = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(jobProvider.notifier).loadJobs();
+      _loadDataIfNeeded();
     });
+  }
+
+  Future<void> _loadDataIfNeeded() async {
+    if (_hasLoadedData) return;
+
+    final authState = ref.read(authControllerProvider);
+    if (authState.isCheckingAuth || !authState.isAuthenticated || authState.userId == null) {
+      return;
+    }
+
+    final jobState = ref.read(jobProvider);
+    if (jobState.jobs.isEmpty && !jobState.isLoadingJobs) {
+      _hasLoadedData = true;
+      await ref.read(jobProvider.notifier).loadJobs();
+    } else if (jobState.jobs.isNotEmpty) {
+      _hasLoadedData = true;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
     final jobState = ref.watch(jobProvider);
+
+    if (!_hasLoadedData &&
+        !authState.isCheckingAuth &&
+        authState.isAuthenticated &&
+        authState.userId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await _loadDataIfNeeded();
+      });
+    }
 
     return Scaffold(
       backgroundColor: context.themeScaffoldCourse,
