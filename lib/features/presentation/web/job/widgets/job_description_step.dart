@@ -19,8 +19,7 @@ class JobDescriptionStep extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<JobDescriptionStep> createState() =>
-      _JobDescriptionStepState();
+  ConsumerState<JobDescriptionStep> createState() => _JobDescriptionStepState();
 }
 
 class _JobDescriptionStepState extends ConsumerState<JobDescriptionStep> {
@@ -63,8 +62,7 @@ class _JobDescriptionStepState extends ConsumerState<JobDescriptionStep> {
             CommonTextfieldWidget(
               controller: _roleOverviewController,
               hintText: 'Enter your job description here...',
-              useBorderOnly: true,
-              borderColor: context.themeDivider,
+
               borderRadius: 8,
               onChanged: (value) => widget.notifier.setRoleOverview(value),
             ),
@@ -202,4 +200,3 @@ class _JobDescriptionStepState extends ConsumerState<JobDescriptionStep> {
     );
   }
 }
-

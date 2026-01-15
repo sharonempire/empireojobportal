@@ -138,7 +138,7 @@ class _SignupPageAppState extends ConsumerState<SignupPageApp> {
                     hintColor: ColorConsts.textColorBlack,
                     useFloatingLabel: true,
                     requiredField: true,
-                    height: context.rHeight(46),
+                    height: context.rHeight(40),
                   ),
                   SizedBox(height: context.rSpacing(24)),
 
@@ -150,7 +150,7 @@ class _SignupPageAppState extends ConsumerState<SignupPageApp> {
                     keyboardType: TextInputType.emailAddress,
                     useFloatingLabel: true,
                     requiredField: true,
-                    height: context.rHeight(46),
+                    height: context.rHeight(40),
                     hintColor: ColorConsts.textColorBlack,
                   ),
                   SizedBox(height: context.rSpacing(24)),
@@ -188,6 +188,7 @@ class _SignupPageAppState extends ConsumerState<SignupPageApp> {
                     requiredField: true,
                     hintColor: ColorConsts.textColorBlack,
                     height: context.rHeight(46),
+
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureConfirmPassword
@@ -220,10 +221,10 @@ class _SignupPageAppState extends ConsumerState<SignupPageApp> {
                           onPressed: _onCreateAccount,
                           backgroundColor: ColorConsts.white,
                           textColor: ColorConsts.black,
-                          showBorder: false,
-                          showShadow: true,
+                          showBorder: true,
+                          showShadow: false,
                           fontSize: context.rFontSize(14),
-                          height: context.rHeight(52),
+                          height: context.rHeight(42),
                           borderRadius: 26,
                         ),
                   SizedBox(height: context.rSpacing(32)),
@@ -263,7 +264,7 @@ class _SignupPageAppState extends ConsumerState<SignupPageApp> {
       alignment: Alignment.centerLeft,
       child: CustomText(
         text: label,
-        fontSize: context.rFontSize(14),
+        fontSize: context.rFontSize(12),
         fontWeight: FontWeight.w500,
         color: ColorConsts.black,
       ),

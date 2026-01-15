@@ -7,8 +7,10 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
+import 'package:empire_job/shared/widgets/exit_confirmation_dialog.dart';
 import 'package:empire_job/shared/widgets/shimmer_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -60,50 +62,66 @@ class _DashbordState extends ConsumerState<Dashbord> {
         .length;
     final totalApplications = appliedJobState.appliedJobs.length;
 
-    return Scaffold(
-      backgroundColor: ColorConsts.lightGreyBackground,
-      appBar: CommonAppBar(
-        showProfile: true,
-        profileName: authState.companyName ?? authState.email ?? 'User',
-        profileImageUrl: null,
-        showNotification: true,
-        onNotificationPressed: () {
-          context.pushNamed('notifications');
-        },
-      ),
-      body: SafeArea(
-        child: jobState.isLoadingJobs
-            ? const DashboardShimmer()
-            : RefreshIndicator(
-                onRefresh: () async {
-                  await ref.read(jobProvider.notifier).loadJobs();
-                  await ref.read(appliedJobProvider.notifier).loadAppliedJobs();
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.all(context.rSpacing(16)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Create Job Card
-                      _buildCreateJobCard(),
-                      SizedBox(height: context.rSpacing(24)),
-                      // Stats Row
-                      _buildStatsRow(totalJobs, activeJobs, totalApplications),
-                      SizedBox(height: context.rSpacing(24)),
-                      // Recent Applications
-                      _buildRecentApplications(),
-                      SizedBox(height: context.rSpacing(24)),
-                      // Job Posting Status
-                      _buildJobPostingStatus(jobState.jobs),
-                    ],
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldExit = await showExitConfirmationDialog(context);
+        if (shouldExit && context.mounted) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: ColorConsts.lightGreyBackground,
+        appBar: CommonAppBar(
+          showProfile: true,
+          profileName: authState.companyName ?? authState.email ?? 'User',
+          profileImageUrl: null,
+          showNotification: true,
+          onNotificationPressed: () {
+            context.pushNamed('notifications');
+          },
+        ),
+        body: SafeArea(
+          child: jobState.isLoadingJobs
+              ? const DashboardShimmer()
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(jobProvider.notifier).loadJobs();
+                    await ref
+                        .read(appliedJobProvider.notifier)
+                        .loadAppliedJobs();
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(context.rSpacing(16)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Create Job Card
+                        _buildCreateJobCard(),
+                        SizedBox(height: context.rSpacing(24)),
+                        // Stats Row
+                        _buildStatsRow(
+                          totalJobs,
+                          activeJobs,
+                          totalApplications,
+                        ),
+                        SizedBox(height: context.rSpacing(24)),
+                        // Recent Applications
+                        _buildRecentApplications(),
+                        SizedBox(height: context.rSpacing(24)),
+                        // Job Posting Status
+                        _buildJobPostingStatus(jobState.jobs),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-      ),
-      bottomNavigationBar: AppBottomNavigationBar(
-        currentIndex: 0,
-        onTap: _onNavTap,
+        ),
+        bottomNavigationBar: AppBottomNavigationBar(
+          currentIndex: 0,
+          onTap: _onNavTap,
+        ),
       ),
     );
   }
@@ -241,48 +259,51 @@ class _DashbordState extends ConsumerState<Dashbord> {
             ),
             SizedBox(height: context.rSpacing(16)),
             // Shimmer rows
-            ...List.generate(5, (index) => Padding(
-              padding: EdgeInsets.only(bottom: context.rSpacing(12)),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: ShimmerBox(
-                      width: double.infinity,
-                      height: context.rSpacing(12),
-                      borderRadius: 4,
+            ...List.generate(
+              5,
+              (index) => Padding(
+                padding: EdgeInsets.only(bottom: context.rSpacing(12)),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: ShimmerBox(
+                        width: double.infinity,
+                        height: context.rSpacing(12),
+                        borderRadius: 4,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: context.rSpacing(8)),
-                  Expanded(
-                    flex: 3,
-                    child: ShimmerBox(
-                      width: double.infinity,
-                      height: context.rSpacing(12),
-                      borderRadius: 4,
+                    SizedBox(width: context.rSpacing(8)),
+                    Expanded(
+                      flex: 3,
+                      child: ShimmerBox(
+                        width: double.infinity,
+                        height: context.rSpacing(12),
+                        borderRadius: 4,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: context.rSpacing(8)),
-                  Expanded(
-                    flex: 2,
-                    child: ShimmerBox(
-                      width: double.infinity,
-                      height: context.rSpacing(12),
-                      borderRadius: 4,
+                    SizedBox(width: context.rSpacing(8)),
+                    Expanded(
+                      flex: 2,
+                      child: ShimmerBox(
+                        width: double.infinity,
+                        height: context.rSpacing(12),
+                        borderRadius: 4,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: context.rSpacing(8)),
-                  Expanded(
-                    flex: 2,
-                    child: ShimmerBox(
-                      width: double.infinity,
-                      height: context.rSpacing(12),
-                      borderRadius: 4,
+                    SizedBox(width: context.rSpacing(8)),
+                    Expanded(
+                      flex: 2,
+                      child: ShimmerBox(
+                        width: double.infinity,
+                        height: context.rSpacing(12),
+                        borderRadius: 4,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )),
+            ),
           ],
         ),
       );

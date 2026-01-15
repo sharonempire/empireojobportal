@@ -5,8 +5,10 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
+import 'package:empire_job/shared/widgets/exit_confirmation_dialog.dart';
 import 'package:empire_job/shared/widgets/shimmer_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,44 +47,54 @@ class _ViewJobPageAppState extends ConsumerState<ViewJobPageApp> {
   Widget build(BuildContext context) {
     final jobState = ref.watch(jobProvider);
 
-    return Scaffold(
-      backgroundColor: ColorConsts.lightGreyBackground,
-      appBar: CommonAppBar(
-        showProfile: true,
-        profileName: 'Michael Roberts',
-        profileImageUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-        showNotification: true,
-        onNotificationPressed: () {
-          context.pushNamed('notifications');
-        },
-      ),
-      body: SafeArea(
-        child: jobState.isLoadingJobs
-            ? const ViewJobPageShimmer()
-            : RefreshIndicator(
-                onRefresh: () async {
-                  await ref.read(jobProvider.notifier).loadJobs();
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.all(context.rSpacing(16)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header Section
-                      _buildHeaderSection(),
-                      SizedBox(height: context.rSpacing(24)),
-                      // View Posted Jobs Section
-                      _buildPostedJobsSection(jobState.jobs),
-                    ],
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldExit = await showExitConfirmationDialog(context);
+        if (shouldExit && context.mounted) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: ColorConsts.lightGreyBackground,
+        appBar: CommonAppBar(
+          showProfile: true,
+          profileName: 'Michael Roberts',
+          profileImageUrl:
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+          showNotification: true,
+          onNotificationPressed: () {
+            context.pushNamed('notifications');
+          },
+        ),
+        body: SafeArea(
+          child: jobState.isLoadingJobs
+              ? const ViewJobPageShimmer()
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(jobProvider.notifier).loadJobs();
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(context.rSpacing(16)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header Section
+                        _buildHeaderSection(),
+                        SizedBox(height: context.rSpacing(24)),
+                        // View Posted Jobs Section
+                        _buildPostedJobsSection(jobState.jobs),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-      ),
-      bottomNavigationBar: AppBottomNavigationBar(
-        currentIndex: 1,
-        onTap: _onNavTap,
+        ),
+        bottomNavigationBar: AppBottomNavigationBar(
+          currentIndex: 1,
+          onTap: _onNavTap,
+        ),
       ),
     );
   }

@@ -268,6 +268,10 @@ class _NotificationPageAppState extends ConsumerState<NotificationPageApp> {
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
       child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? ColorConsts.lightGrey : ColorConsts.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
         padding: EdgeInsets.symmetric(
           horizontal: context.rSpacing(12),
           vertical: context.rSpacing(6),

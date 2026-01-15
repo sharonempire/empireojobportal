@@ -4,8 +4,10 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
+import 'package:empire_job/shared/widgets/exit_confirmation_dialog.dart';
 import 'package:empire_job/shared/widgets/shimmer_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -77,36 +79,46 @@ class _SettingsPageAppState extends ConsumerState<SettingsPageApp> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
 
-    return Scaffold(
-      backgroundColor: ColorConsts.white,
-      appBar: CommonAppBar(
-        title: 'Settings',
-        showBackButton: true,
-        onBackPressed: () => context.goNamed('dashboard'),
-      ),
-      body: SafeArea(
-        child: authState.isCheckingAuth
-            ? const SettingsPageShimmer()
-            : SingleChildScrollView(
-          padding: EdgeInsets.all(context.rSpacing(16)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Company Name Card
-              _buildCompanyCard(authState),
-              SizedBox(height: context.rSpacing(24)),
-              // Account Section
-              _buildAccountSection(),
-              SizedBox(height: context.rSpacing(24)),
-              // Logout Section
-              _buildLogoutSection(),
-            ],
-          ),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldExit = await showExitConfirmationDialog(context);
+        if (shouldExit && context.mounted) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: ColorConsts.white,
+        appBar: CommonAppBar(
+          title: 'Settings',
+          showBackButton: true,
+          onBackPressed: () => context.goNamed('dashboard'),
         ),
-      ),
-      bottomNavigationBar: AppBottomNavigationBar(
-        currentIndex: 2,
-        onTap: _onNavTap,
+        body: SafeArea(
+          child: authState.isCheckingAuth
+              ? const SettingsPageShimmer()
+              : SingleChildScrollView(
+                  padding: EdgeInsets.all(context.rSpacing(16)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Company Name Card
+                      _buildCompanyCard(authState),
+                      SizedBox(height: context.rSpacing(24)),
+                      // Account Section
+                      _buildAccountSection(),
+                      SizedBox(height: context.rSpacing(24)),
+                      // Logout Section
+                      _buildLogoutSection(),
+                    ],
+                  ),
+                ),
+        ),
+        bottomNavigationBar: AppBottomNavigationBar(
+          currentIndex: 2,
+          onTap: _onNavTap,
+        ),
       ),
     );
   }
