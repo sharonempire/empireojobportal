@@ -26,9 +26,7 @@ class AppliedJobRepository {
       );
 
       // API already provides candidate_name and job_title, so just map directly
-      return appliedJobs
-          .map((job) => AppliedJobModel.fromMap(job))
-          .toList();
+      return appliedJobs.map((job) => AppliedJobModel.fromMap(job)).toList();
     } catch (e) {
       debugPrint('Error fetching applied jobs: $e');
       rethrow;
@@ -46,7 +44,7 @@ class AppliedJobRepository {
         orderBy: 'applied_at',
         ascending: false,
       );
-      
+
       // Filter applied jobs where job_id matches one of the provided job IDs
       final filteredJobs = allAppliedJobs.where((appliedJob) {
         final jobId = appliedJob['job_id']?.toString();
@@ -54,9 +52,7 @@ class AppliedJobRepository {
       }).toList();
 
       // API already provides candidate_name and job_title, so just map directly
-      return filteredJobs
-          .map((job) => AppliedJobModel.fromMap(job))
-          .toList();
+      return filteredJobs.map((job) => AppliedJobModel.fromMap(job)).toList();
     } catch (e) {
       debugPrint('Error fetching applied jobs by job IDs: $e');
       rethrow;
@@ -76,4 +72,3 @@ class AppliedJobRepository {
     }
   }
 }
-

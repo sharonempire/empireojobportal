@@ -7,7 +7,10 @@ import 'package:empire_job/shared/consts/color_consts.dart';
 import 'package:empire_job/shared/utils/bottonavigationbar.dart';
 import 'package:empire_job/shared/utils/responsive.dart';
 import 'package:empire_job/shared/widgets/common_app_bar.dart';
+import 'package:empire_job/shared/widgets/description_textfield_widget.dart';
+import 'package:empire_job/shared/widgets/exit_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,6 +23,7 @@ class JobPageApp extends ConsumerStatefulWidget {
 
 class _JobPageAppState extends ConsumerState<JobPageApp> {
   final int _totalSteps = 4;
+  final _formKey = GlobalKey<FormState>();
 
   // Step 1 Controllers
   final _jobTitleController = TextEditingController();
@@ -159,9 +163,115 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
     super.dispose();
   }
 
+  bool _validateStep(int step) {
+    final jobState = ref.read(jobProvider);
+    final job = jobState.currentJob;
+
+    switch (step) {
+      case 1:
+        if (_jobTitleController.text.trim().isEmpty) {
+          _showError('Please enter job title');
+          return false;
+        }
+        if (job.industryType == null || job.industryType!.isEmpty) {
+          _showError('Please select industry type');
+          return false;
+        }
+        if (job.jobType == null || job.jobType!.isEmpty) {
+          _showError('Please select job type');
+          return false;
+        }
+        if (job.workMode == null || job.workMode!.isEmpty) {
+          _showError('Please select work mode');
+          return false;
+        }
+        if (job.minExperience == null || job.minExperience!.isEmpty) {
+          _showError('Please select minimum experience');
+          return false;
+        }
+        if (job.maxExperience == null || job.maxExperience!.isEmpty) {
+          _showError('Please select maximum experience');
+          return false;
+        }
+        return true;
+      case 2:
+        if (job.country == null || job.country!.isEmpty) {
+          _showError('Please select country');
+          return false;
+        }
+        if (job.stateProvince == null || job.stateProvince!.isEmpty) {
+          _showError('Please select state/province');
+          return false;
+        }
+        if (job.city == null || job.city!.isEmpty) {
+          _showError('Please select city');
+          return false;
+        }
+        if (job.minSalary <= 0 || job.maxSalary <= 0) {
+          _showError('Please set salary range');
+          return false;
+        }
+        if (job.minSalary > job.maxSalary) {
+          _showError('Minimum salary cannot be greater than maximum salary');
+          return false;
+        }
+        return true;
+      case 3:
+        if (_roleOverviewController.text.trim().isEmpty) {
+          _showError('Please enter role overview');
+          return false;
+        }
+        if (job.languages.isEmpty) {
+          _showError('Please select at least one language');
+          return false;
+        }
+        if (job.keyResponsibilities.isEmpty) {
+          _showError('Please select at least one key responsibility');
+          return false;
+        }
+        if (job.benefits.isEmpty) {
+          _showError('Please select at least one benefit');
+          return false;
+        }
+        return true;
+      case 4:
+        if (job.education == null || job.education!.isEmpty) {
+          _showError('Please select education requirement');
+          return false;
+        }
+        if (job.skills.isEmpty) {
+          _showError('Please select at least one skill');
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: ColorConsts.textColorRed,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _nextStep() {
     final jobNotifier = ref.read(jobProvider.notifier);
     final currentStep = jobNotifier.currentStep;
+
+    // Validate form fields first (for text fields)
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Validate current step before proceeding (for dropdowns and other fields)
+    if (!_validateStep(currentStep)) {
+      return;
+    }
 
     if (currentStep < _totalSteps) {
       jobNotifier.nextStep();
@@ -211,126 +321,143 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
     final jobState = ref.watch(jobProvider);
     final currentStep = jobState.currentJob.currentStep;
 
-    return Scaffold(
-      backgroundColor: ColorConsts.lightGreyBackground,
-      appBar: CommonAppBar(
-        showProfile: true,
-        profileName: 'Create Job',
-        profileImageUrl: null,
-        showNotification: true,
-        onNotificationPressed: () {
-          context.pushNamed('notifications');
-        },
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(context.rSpacing(20)),
-          child: Container(
-            margin: EdgeInsets.only(bottom: context.rSpacing(12)),
-            padding: EdgeInsets.all(context.rSpacing(12)),
-            decoration: BoxDecoration(
-              color: ColorConsts.white,
-              borderRadius: BorderRadius.circular(context.rSpacing(8)),
-              border: Border.all(color: ColorConsts.lightGrey, width: 1),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(context.rSpacing(8)),
-              child: Column(
-                children: [
-                  // Content
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.all(context.rSpacing(16)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Title Section
-                          CustomText(
-                            text: 'Create Your Job Opening',
-                            fontSize: context.rFontSize(16),
-                            fontWeight: FontWeight.bold,
-                            color: ColorConsts.black,
-                          ),
-                          SizedBox(height: context.rSpacing(8)),
-                          CustomText(
-                            text:
-                                'Provide the essential job details and reach the right candidates faster.',
-                            fontSize: context.rFontSize(12),
-                            color: ColorConsts.textColor,
-                          ),
-                          SizedBox(height: context.rSpacing(16)),
-                          // Progress Bar
-                          _buildProgressBar(currentStep),
-                          SizedBox(height: context.rSpacing(24)),
-                          // Step Content
-                          _buildStepContent(currentStep),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: context.rSpacing(24)),
-
-                  // Next/Submit Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (currentStep > 1)
-                        Padding(
-                          padding: EdgeInsets.only(right: context.rSpacing(8)),
-                          child: PrimaryButtonWidget(
-                            text: 'Back',
-                            onPressed: () {
-                              ref.read(jobProvider.notifier).previousStep();
-                            },
-                            backgroundColor: ColorConsts.white,
-                            textColor: ColorConsts.black,
-                            showBorder: true,
-                            showShadow: false,
-                            height: context.rHeight(30),
-                            width: context.rSpacing(80),
-                            borderRadius: 26,
-                            fontSize: context.rFontSize(12),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldExit = await showExitConfirmationDialog(context);
+        if (shouldExit && context.mounted) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: ColorConsts.lightGreyBackground,
+        appBar: CommonAppBar(
+          showProfile: true,
+          profileName: 'Create Job',
+          profileImageUrl: null,
+          showNotification: true,
+          onNotificationPressed: () {
+            context.pushNamed('notifications');
+          },
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(context.rSpacing(20)),
+            child: Container(
+              margin: EdgeInsets.only(bottom: context.rSpacing(12)),
+              padding: EdgeInsets.all(context.rSpacing(12)),
+              decoration: BoxDecoration(
+                color: ColorConsts.white,
+                borderRadius: BorderRadius.circular(context.rSpacing(8)),
+                border: Border.all(color: ColorConsts.lightGrey, width: 1),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(context.rSpacing(8)),
+                child: Column(
+                  children: [
+                    // Content
+                    Expanded(
+                      child: Form(
+                        key: _formKey,
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.all(context.rSpacing(16)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Title Section
+                              CustomText(
+                                text: 'Create Your Job Opening',
+                                fontSize: context.rFontSize(16),
+                                fontWeight: FontWeight.bold,
+                                color: ColorConsts.black,
+                              ),
+                              SizedBox(height: context.rSpacing(8)),
+                              CustomText(
+                                text:
+                                    'Provide the essential job details and reach the right candidates faster.',
+                                fontSize: context.rFontSize(12),
+                                color: ColorConsts.textColor,
+                              ),
+                              SizedBox(height: context.rSpacing(16)),
+                              // Progress Bar
+                              _buildProgressBar(currentStep),
+                              SizedBox(height: context.rSpacing(24)),
+                              // Step Content
+                              _buildStepContent(currentStep),
+                            ],
                           ),
                         ),
-                      jobState.isSubmittingJob
-                          ? const CircularProgressIndicator(
-                              color: ColorConsts.black,
-                            )
-                          : PrimaryButtonWidget(
-                              text: currentStep == _totalSteps
-                                  ? 'Submit'
-                                  : 'Next',
-                              onPressed: _nextStep,
-                              backgroundColor: ColorConsts.black,
-                              textColor: ColorConsts.white,
-                              showBorder: false,
+                      ),
+                    ),
+                    SizedBox(height: context.rSpacing(24)),
+
+                    // Next/Submit Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (currentStep > 1)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              right: context.rSpacing(8),
+                            ),
+                            child: PrimaryButtonWidget(
+                              text: 'Back',
+                              onPressed: () {
+                                ref.read(jobProvider.notifier).previousStep();
+                              },
+                              backgroundColor: ColorConsts.white,
+                              textColor: ColorConsts.black,
+                              showBorder: true,
                               showShadow: false,
                               height: context.rHeight(30),
-                              width: context.rSpacing(90),
+                              width: context.rSpacing(80),
                               borderRadius: 26,
                               fontSize: context.rFontSize(12),
                             ),
-                    ],
-                  ),
-                ],
+                          ),
+                        jobState.isSubmittingJob
+                            ? const CircularProgressIndicator(
+                                color: ColorConsts.black,
+                              )
+                            : PrimaryButtonWidget(
+                                text: currentStep == _totalSteps
+                                    ? 'Submit'
+                                    : 'Next',
+                                onPressed: _nextStep,
+                                backgroundColor: ColorConsts.black,
+                                textColor: ColorConsts.white,
+                                showBorder: false,
+                                showShadow: false,
+                                height: context.rHeight(30),
+                                width: context.rSpacing(90),
+                                borderRadius: 26,
+                                fontSize: context.rFontSize(12),
+                              ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: AppBottomNavigationBar(
-        currentIndex: 1,
-        onTap: _onNavTap,
+        bottomNavigationBar: AppBottomNavigationBar(
+          currentIndex: 1,
+          onTap: _onNavTap,
+        ),
       ),
     );
   }
 
   Widget _buildProgressBar(int currentStep) {
+    // Calculate progress: step 1 = 0%, step 2 = 25%, step 3 = 50%, step 4 = 75%
+    final progress = (currentStep - 1) / _totalSteps;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LinearProgressIndicator(
-          value: currentStep / _totalSteps,
+          value: progress,
           backgroundColor: ColorConsts.lightGrey,
           valueColor: const AlwaysStoppedAnimation<Color>(
             ColorConsts.textColorRed,
@@ -385,7 +512,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           ),
         ),
         SizedBox(height: context.rSpacing(24)),
-        _buildFieldLabel('Job Title / Position'),
+        _buildFieldLabel('Job Title / Position', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         CommonTextfieldWidget(
           controller: _jobTitleController,
@@ -394,12 +521,18 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           useBorderOnly: true,
           height: context.rHeight(30),
           borderRadius: 8,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Job title is required';
+            }
+            return null;
+          },
           onChanged: (value) {
             ref.read(jobProvider.notifier).setJobTitle(value);
           },
         ),
         SizedBox(height: context.rSpacing(20)),
-        _buildFieldLabel('Industry Type'),
+        _buildFieldLabel('Industry Type', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
           value: job.industryType,
@@ -416,7 +549,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildFieldLabel('Job Type'),
+                  _buildFieldLabel('Job Type', isRequired: true),
                   SizedBox(height: context.rSpacing(8)),
                   _buildDropdown(
                     value: job.jobType,
@@ -434,7 +567,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildFieldLabel('Work Mode'),
+                  _buildFieldLabel('Work Mode', isRequired: true),
                   SizedBox(height: context.rSpacing(8)),
                   _buildDropdown(
                     value: job.workMode,
@@ -450,7 +583,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           ],
         ),
         SizedBox(height: context.rSpacing(20)),
-        _buildFieldLabel('Work Experience'),
+        _buildFieldLabel('Work Experience', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         Row(
           children: [
@@ -507,7 +640,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           ),
         ),
         SizedBox(height: context.rSpacing(24)),
-        _buildFieldLabel('Country'),
+        _buildFieldLabel('Country', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
           value: job.country,
@@ -518,7 +651,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           },
         ),
         SizedBox(height: context.rSpacing(20)),
-        _buildFieldLabel('State / Province / Region'),
+        _buildFieldLabel('State / Province / Region', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
           value: job.stateProvince,
@@ -529,7 +662,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           },
         ),
         SizedBox(height: context.rSpacing(20)),
-        _buildFieldLabel('City'),
+        _buildFieldLabel('City', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
           value: job.city,
@@ -540,7 +673,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           },
         ),
         SizedBox(height: context.rSpacing(20)),
-        _buildFieldLabel('Salary'),
+        _buildFieldLabel('Salary', isRequired: true),
         SizedBox(height: context.rSpacing(16)),
         Container(
           height: context.rHeight(95),
@@ -637,22 +770,26 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           ),
         ),
         SizedBox(height: context.rSpacing(24)),
-        _buildFieldLabel('Role Overview'),
-        SizedBox(height: context.rSpacing(8)),
-        CommonTextfieldWidget(
+        DescriptionTextfieldWidget(
           controller: _roleOverviewController,
-          hintText: 'Enter you job description here...',
-          useBorderOnly: true,
-          hintFontSize: context.rFontSize(10),
-          height: context.rHeight(110),
-          borderRadius: 8,
-          maxLines: 4,
+          labelText: 'Role Overview',
+          hintText: 'Enter your job description here...',
+          isRequired: true,
+          height: context.rHeight(120),
+          maxLines: null,
+          minLines: 4,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Role overview is required';
+            }
+            return null;
+          },
           onChanged: (value) {
             ref.read(jobProvider.notifier).setRoleOverview(value);
           },
         ),
         SizedBox(height: context.rSpacing(16)),
-        _buildFieldLabel('Languages'),
+        _buildFieldLabel('Languages', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         MultiSelectDropdownWidget(
           options: _languages,
@@ -663,7 +800,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           },
         ),
         SizedBox(height: context.rSpacing(16)),
-        _buildFieldLabel('Key Responsibilities'),
+        _buildFieldLabel('Key Responsibilities', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         MultiSelectDropdownWidget(
           options: _responsibilities,
@@ -674,7 +811,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           },
         ),
         SizedBox(height: context.rSpacing(16)),
-        _buildFieldLabel('Benefits'),
+        _buildFieldLabel('Benefits', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         MultiSelectDropdownWidget(
           options: _benefits,
@@ -705,7 +842,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           ),
         ),
         SizedBox(height: context.rSpacing(24)),
-        _buildFieldLabel('Education'),
+        _buildFieldLabel('Education', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         _buildDropdown(
           value: job.education,
@@ -716,7 +853,7 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
           },
         ),
         SizedBox(height: context.rSpacing(16)),
-        _buildFieldLabel('Skills'),
+        _buildFieldLabel('Skills', isRequired: true),
         SizedBox(height: context.rSpacing(8)),
         MultiSelectDropdownWidget(
           options: _skillsOptions,
@@ -730,12 +867,25 @@ class _JobPageAppState extends ConsumerState<JobPageApp> {
     );
   }
 
-  Widget _buildFieldLabel(String label) {
-    return CustomText(
-      text: label,
-      fontSize: context.rFontSize(12),
-      fontWeight: FontWeight.w500,
-      color: ColorConsts.black,
+  Widget _buildFieldLabel(String label, {bool isRequired = false}) {
+    return Row(
+      children: [
+        CustomText(
+          text: label,
+          fontSize: context.rFontSize(12),
+          fontWeight: FontWeight.w500,
+          color: ColorConsts.black,
+        ),
+        if (isRequired) ...[
+          SizedBox(width: context.rSpacing(4)),
+          CustomText(
+            text: '*',
+            fontSize: context.rFontSize(12),
+            fontWeight: FontWeight.w500,
+            color: ColorConsts.textColorRed,
+          ),
+        ],
+      ],
     );
   }
 

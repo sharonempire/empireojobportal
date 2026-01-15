@@ -17,6 +17,8 @@ class CommonTextfieldWidget extends StatelessWidget {
   final double? borderRadius;
   final Color? fillColor;
   final Color? hintColor;
+  final Color? textColor;
+  final double? fontSize;
   final double? hintFontSize; // <-- Added
   final double? labelFontSize; // <-- Added
   final double? hintSize;
@@ -51,6 +53,8 @@ class CommonTextfieldWidget extends StatelessWidget {
     this.borderRadius,
     this.fillColor,
     this.hintColor,
+    this.textColor,
+    this.fontSize,
     this.hintFontSize, // <-- Added
     this.labelFontSize, // <-- Added
     this.hintSize,
@@ -89,6 +93,9 @@ class CommonTextfieldWidget extends StatelessWidget {
 
     return Container(
       height: height,
+      constraints: height == null && (maxLines != null && maxLines! > 1)
+          ? const BoxConstraints(minHeight: 100)
+          : null,
       decoration: BoxDecoration(
         color: shouldShowBorder || useFloatingLabel
             ? Colors.transparent
@@ -109,8 +116,8 @@ class CommonTextfieldWidget extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         style: GoogleFonts.inter(
-          fontSize: 12,
-          color: isDark ? context.themeWhite : context.themeDark,
+          fontSize: fontSize ?? 12,
+          color: textColor ?? (isDark ? context.themeWhite : context.themeDark),
         ),
         onChanged: onChanged,
         onFieldSubmitted: onFieldSubmitted,
@@ -207,6 +214,9 @@ class CommonTextfieldWidget extends StatelessWidget {
                   top: suffixIcon != null ? (height ?? 50) / 2 - 10 : 0,
                   bottom: suffixIcon != null ? (height ?? 50) / 2 - 10 : 0,
                 )
+              : (maxLines != null && maxLines! > 1) ||
+                    (minLines != null && minLines! > 1)
+              ? const EdgeInsets.all(12)
               : EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: (height ?? 50) / 2 - 12,
